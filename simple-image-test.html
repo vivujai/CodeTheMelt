@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Image Test</title>
+    <style>
+        body { background: #222; color: white; padding: 20px; }
+        img { border: 2px solid #0f0; margin: 10px; max-width: 300px; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+    </style>
+</head>
+<body>
+    <h1>Simple Image Loading Test</h1>
+    
+    <h2>Test 1: Relative Path</h2>
+    <img src="frontend/images/antarctica-impact-map.png" alt="Antarctica" 
+         onload="document.getElementById('test1').innerHTML='✓ SUCCESS'" 
+         onerror="document.getElementById('test1').innerHTML='✗ FAILED'">
+    <div id="test1">Loading...</div>
+    
+    <h2>Test 2: Dot Relative Path</h2>
+    <img src="./frontend/images/antarctica-impact-map.png" alt="Antarctica" 
+         onload="document.getElementById('test2').innerHTML='✓ SUCCESS'" 
+         onerror="document.getElementById('test2').innerHTML='✗ FAILED'">
+    <div id="test2">Loading...</div>
+    
+    <h2>Test 3: Greenland</h2>
+    <img src="frontend/images/greenland-impact-map.png" alt="Greenland" 
+         onload="document.getElementById('test3').innerHTML='✓ SUCCESS'" 
+         onerror="document.getElementById('test3').innerHTML='✗ FAILED'">
+    <div id="test3">Loading...</div>
+    
+    <h2>Current URL Info</h2>
+    <div id="url-info"></div>
+    
+    <script>
+        document.getElementById('url-info').innerHTML = 
+            'URL: ' + window.location.href + '<br>' +
+            'Pathname: ' + window.location.pathname + '<br>' +
+            'Hostname: ' + window.location.hostname;
+    </script>
+</body>
+</html>

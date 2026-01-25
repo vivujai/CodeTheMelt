@@ -5,7 +5,10 @@
 
 const API_CONFIG = {
     // Local development (Java backend)
-    LOCAL: 'http://localhost:8080',
+    LOCAL_JAVA: 'http://localhost:8080',
+    
+    // Local development (Python backend)
+    LOCAL_PYTHON: 'http://localhost:5000',
     
     // PythonAnywhere deployment (Python backend)
     // Replace 'yourusername' with your actual PythonAnywhere username
@@ -13,7 +16,7 @@ const API_CONFIG = {
     
     // Current active configuration
     // Change this to switch between backends
-    ACTIVE: 'LOCAL'  // Change to 'PYTHONANYWHERE' when deployed
+    ACTIVE: 'LOCAL_PYTHON'  // Change to 'PYTHONANYWHERE' when deployed
 };
 
 // Get the current API base URL

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Pages Path Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #004400; color: #00ff00; }
+        .error { background-color: #440000; color: #ff0000; }
+        .info { background-color: #004444; color: #00ffff; }
+        img {
+            max-width: 200px;
+            height: auto;
+            border: 2px solid #00ff00;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>GitHub Pages Path Debugging</h1>
+    
+    <div class="test-section">
+        <h2>Current URL Analysis</h2>
+        <div id="url-info" class="info status">Loading...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test All Possible Image Paths</h2>
+        
+        <h3>Path 1: frontend/images/antarctica-impact-map.png</h3>
+        <img src="frontend/images/antarctica-impact-map.png" 
+             onload="updateStatus('path1', 'SUCCESS', 'success')"
+             onerror="updateStatus('path1', 'FAILED', 'error')" />
+        <div id="path1" class="status info">Testing...</div>
+        
+        <h3>Path 2: ./frontend/images/antarctica-impact-map.png</h3>
+        <img src="./frontend/images/antarctica-impact-map.png" 
+             onload="updateStatus('path2', 'SUCCESS', 'success')"
+             onerror="updateStatus('path2', 'FAILED', 'error')" />
+        <div id="path2" class="status info">Testing...</div>
+        
+        <h3>Path 3: /frontend/images/antarctica-impact-map.png</h3>
+        <img src="/frontend/images/antarctica-impact-map.png" 
+             onload="updateStatus('path3', 'SUCCESS', 'success')"
+             onerror="updateStatus('path3', 'FAILED', 'error')" />
+        <div id="path3" class="status info">Testing...</div>
+        
+        <div id="repo-path-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Dynamic Path Test</h2>
+        <div id="dynamic-test"></div>
+        <div id="dynamic-status" class="status info">Testing dynamic paths...</div>
+    </div>
+    
+    <script>
+        function updateStatus(elementId, message, className) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'status ' + className;
+        }
+        
+        // Analyze current URL
+        function analyzeURL() {
+            const url = window.location.href;
+            const pathname = window.location.pathname;
+            const origin = window.location.origin;
+            
+            let repoName = '';
+            const pathParts = pathname.split('/').filter(part => part);
+            
+            // Detect if we're in a GitHub Pages subdirectory
+            let isSubdirectory = false;
+            if (pathParts.length > 0 && !pathParts[0].endsWith('.html')) {
+                repoName = pathParts[0];
+                isSubdirectory = true;
+            }
+            
+            const info = `
+                <strong>Full URL:</strong> ${url}<br>
+                <strong>Origin:</strong> ${origin}<br>
+                <strong>Pathname:</strong> ${pathname}<br>
+                <strong>Repository Name:</strong> ${repoName || 'None (root deployment)'}<br>
+                <strong>Is Subdirectory:</strong> ${isSubdirectory}<br>
+                <strong>Path Parts:</strong> [${pathParts.join(', ')}]
+            `;
+            
+            document.getElementById('url-info').innerHTML = info;
+            
+            // Test repository-specific path if we detect a subdirectory
+            if (isSubdirectory && repoName) {
+                const repoTestDiv = document.getElementById('repo-path-test');
+                repoTestDiv.innerHTML = `
+                    <h3>Path 4: /${repoName}/frontend/images/antarctica-impact-map.png</h3>
+                    <img src="/${repoName}/frontend/images/antarctica-impact-map.png" 
+                         onload="updateStatus('path4', 'SUCCESS', 'success')"
+                         onerror="updateStatus('path4', 'FAILED', 'error')" />
+                    <div id="path4" class="status info">Testing...</div>
+                `;
+            }
+            
+            return { repoName, isSubdirectory, pathParts };
+        }
+        
+        // Test dynamic path generation
+        function testDynamicPaths() {
+            const { repoName, isSubdirectory } = analyzeURL();
+            
+            let basePath;
+            if (isSubdirectory && repoName) {
+                basePath = `/${repoName}/`;
+            } else {
+                basePath = './';
+            }
+            
+            const dynamicImagePath = `${basePath}frontend/images/antarctica-impact-map.png`;
+            
+            const dynamicTestDiv = document.getElementById('dynamic-test');
+            dynamicTestDiv.innerHTML = `
+                <h3>Dynamic Path: ${dynamicImagePath}</h3>
+                <img src="${dynamicImagePath}" 
+                     onload="updateStatus('dynamic-status', 'SUCCESS: Dynamic path works!', 'success')"
+                     onerror="updateStatus('dynamic-status', 'FAILED: Dynamic path failed', 'error')" />
+            `;
+        }
+        
+        // Run tests when page loads
+        window.onload = function() {
+            analyzeURL();
+            setTimeout(testDynamicPaths, 1000); // Give URL analysis time to complete
+        };
+    </script>
+</body>
+</html>

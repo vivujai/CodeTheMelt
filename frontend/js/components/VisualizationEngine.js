@@ -317,24 +317,45 @@ class VisualizationEngine {
     }
 
     /**
+     * Create an image element with fallback paths for GitHub Pages compatibility
+     * @param {string} imageName - Name of the image file
+     * @param {string} altText - Alt text for the image
+     * @param {string} className - CSS class for the image
+     * @returns {string} HTML string for the image with fallbacks
+     */
+    createImageWithFallbacks(imageName, altText, className) {
+        const basePath = this.getBasePath();
+        const primaryPath = `${basePath}frontend/images/${imageName}`;
+        
+        return `
+            <img src="${primaryPath}" 
+                 alt="${altText}" 
+                 class="${className}"
+                 onerror="this.onerror=null; this.src='./frontend/images/${imageName}'; this.onerror=function(){this.onerror=null; this.src='frontend/images/${imageName}'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}};" />
+        `;
+    }
+
+    /**
      * Get the correct base path for resources based on current URL
      * This handles both root deployment and subdirectory deployment (GitHub Pages)
      */
     getBasePath() {
-        // If we're on GitHub Pages with a repository name, we need to account for that
-        const path = window.location.pathname;
-        if (path === '/' || path === '/index.html') {
-            // Root deployment
-            return './';
-        } else {
-            // Subdirectory deployment - extract the base path
-            const pathParts = path.split('/');
-            if (pathParts.length > 2) {
-                // We're in a subdirectory, use relative path from current location
-                return './';
+        const pathname = window.location.pathname;
+        const hostname = window.location.hostname;
+        
+        // Check if we're on GitHub Pages
+        if (hostname.includes('github.io')) {
+            // GitHub Pages subdirectory deployment
+            const pathParts = pathname.split('/').filter(part => part);
+            if (pathParts.length > 0 && !pathParts[0].endsWith('.html')) {
+                // We have a repository name in the path
+                const repoName = pathParts[0];
+                return `/${repoName}/`;
             }
-            return './';
         }
+        
+        // Local development or root deployment
+        return './';
     }
 
     /**
@@ -367,6 +388,8 @@ class VisualizationEngine {
         
         if (isAntarctica) {
             const basePath = this.getBasePath();
+            console.log('Antarctica - Base path determined:', basePath);
+            console.log('Antarctica - Full image path:', `${basePath}frontend/images/antarctica-impact-map.png`);
             displayArea.innerHTML = `
                 <div class="layer-overlay-container">
                     <div class="layer-overlay-header neon-text">
@@ -432,10 +455,7 @@ class VisualizationEngine {
                             <div class="overlay-map-container">
                                 <!-- Real Antarctica impact map image -->
                                 <div class="antarctica-impact-image">
-                                    <img src="${basePath}frontend/images/antarctica-impact-map.png" 
-                                         alt="Antarctica Ice Thickness Change Map" 
-                                         class="impact-map-img"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    ${this.createImageWithFallbacks('antarctica-impact-map.png', 'Antarctica Ice Thickness Change Map', 'impact-map-img')}
                                     <div class="image-placeholder" style="display: none;">
                                         <div class="placeholder-content neon-text">
                                             <h5>Antarctica Impact Map</h5>
@@ -472,6 +492,8 @@ class VisualizationEngine {
         } else {
             // Simplified view for non-Antarctica ice sheets
             const basePath = this.getBasePath();
+            console.log('Greenland - Base path determined:', basePath);
+            console.log('Greenland - Full image path:', `${basePath}frontend/images/greenland-impact-map.png`);
             displayArea.innerHTML = `
                 <div class="layer-overlay-container">
                     <div class="layer-overlay-header neon-text">
@@ -537,10 +559,7 @@ class VisualizationEngine {
                             <div class="overlay-map-container">
                                 <!-- Greenland impact map image -->
                                 <div class="greenland-impact-image">
-                                    <img src="${basePath}frontend/images/greenland-impact-map.png" 
-                                         alt="Greenland Ice Thickness Change Map" 
-                                         class="impact-map-img"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    ${this.createImageWithFallbacks('greenland-impact-map.png', 'Greenland Ice Thickness Change Map', 'impact-map-img')}
                                     <div class="image-placeholder" style="display: none;">
                                         <div class="placeholder-content neon-text">
                                             <h5>Greenland Impact Map</h5>
