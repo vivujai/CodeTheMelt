@@ -317,6 +317,27 @@ class VisualizationEngine {
     }
 
     /**
+     * Get the correct base path for resources based on current URL
+     * This handles both root deployment and subdirectory deployment (GitHub Pages)
+     */
+    getBasePath() {
+        // If we're on GitHub Pages with a repository name, we need to account for that
+        const path = window.location.pathname;
+        if (path === '/' || path === '/index.html') {
+            // Root deployment
+            return './';
+        } else {
+            // Subdirectory deployment - extract the base path
+            const pathParts = path.split('/');
+            if (pathParts.length > 2) {
+                // We're in a subdirectory, use relative path from current location
+                return './';
+            }
+            return './';
+        }
+    }
+
+    /**
      * Render layer overlay visualization showing mass loss with accurate ice sheet shape
      * @param {object} data - Ice sheet data for visualization
      */
@@ -345,6 +366,7 @@ class VisualizationEngine {
         console.log('Is Antarctica:', isAntarctica);
         
         if (isAntarctica) {
+            const basePath = this.getBasePath();
             displayArea.innerHTML = `
                 <div class="layer-overlay-container">
                     <div class="layer-overlay-header neon-text">
@@ -410,7 +432,7 @@ class VisualizationEngine {
                             <div class="overlay-map-container">
                                 <!-- Real Antarctica impact map image -->
                                 <div class="antarctica-impact-image">
-                                    <img src="frontend/images/antarctica-impact-map.png" 
+                                    <img src="${basePath}frontend/images/antarctica-impact-map.png" 
                                          alt="Antarctica Ice Thickness Change Map" 
                                          class="impact-map-img"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
@@ -449,6 +471,7 @@ class VisualizationEngine {
             `;
         } else {
             // Simplified view for non-Antarctica ice sheets
+            const basePath = this.getBasePath();
             displayArea.innerHTML = `
                 <div class="layer-overlay-container">
                     <div class="layer-overlay-header neon-text">
@@ -514,7 +537,7 @@ class VisualizationEngine {
                             <div class="overlay-map-container">
                                 <!-- Greenland impact map image -->
                                 <div class="greenland-impact-image">
-                                    <img src="frontend/images/greenland-impact-map.png" 
+                                    <img src="${basePath}frontend/images/greenland-impact-map.png" 
                                          alt="Greenland Ice Thickness Change Map" 
                                          class="impact-map-img"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />

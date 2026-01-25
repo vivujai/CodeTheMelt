@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Image Loading</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+        }
+        .test-image {
+            max-width: 300px;
+            height: auto;
+            border: 2px solid #00ff00;
+            margin: 10px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #004400; color: #00ff00; }
+        .error { background-color: #440000; color: #ff0000; }
+        .info { background-color: #004444; color: #00ffff; }
+        
+        /* Copy the exact styles from main.css */
+        .antarctica-impact-image {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #001122;
+            box-shadow: 0 0 20px rgba(0, 102, 255, 0.3);
+            border: 2px solid #0066ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .impact-map-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 102, 255, 0.1);
+        }
+        
+        .placeholder-content {
+            text-align: center;
+            color: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Image Loading Issues</h1>
+    
+    <div class="debug-section">
+        <h2>Current URL Information</h2>
+        <div class="info status">
+            <strong>Current URL:</strong> <span id="current-url"></span><br>
+            <strong>Base URL:</strong> <span id="base-url"></span><br>
+            <strong>Protocol:</strong> <span id="protocol"></span>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Test 1: Simple Image Loading</h2>
+        <div>
+            <h3>Antarctica (frontend/images/antarctica-impact-map.png):</h3>
+            <img src="frontend/images/antarctica-impact-map.png" 
+                 alt="Antarctica Test" 
+                 class="test-image"
+                 onload="updateStatus('simple-antarctica', 'SUCCESS: Image loaded', 'success')"
+                 onerror="updateStatus('simple-antarctica', 'ERROR: Image failed to load', 'error')" />
+            <div id="simple-antarctica" class="status info">Loading...</div>
+        </div>
+        
+        <div>
+            <h3>Greenland (frontend/images/greenland-impact-map.png):</h3>
+            <img src="frontend/images/greenland-impact-map.png" 
+                 alt="Greenland Test" 
+                 class="test-image"
+                 onload="updateStatus('simple-greenland', 'SUCCESS: Image loaded', 'success')"
+                 onerror="updateStatus('simple-greenland', 'ERROR: Image failed to load', 'error')" />
+            <div id="simple-greenland" class="status info">Loading...</div>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Test 2: Exact VisualizationEngine Replication</h2>
+        <p>This replicates exactly how VisualizationEngine loads images:</p>
+        
+        <div class="antarctica-impact-image">
+            <img src="frontend/images/antarctica-impact-map.png" 
+                 alt="Antarctica Ice Thickness Change Map" 
+                 class="impact-map-img"
+                 onload="updateStatus('viz-engine', 'SUCCESS: VisualizationEngine style loading works', 'success')"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; updateStatus('viz-engine', 'ERROR: Image failed, showing placeholder', 'error');" />
+            <div class="image-placeholder" style="display: none;">
+                <div class="placeholder-content">
+                    <h5>Antarctica Impact Map</h5>
+                    <p>Replace frontend/images/antarctica-impact-map.png</p>
+                    <p>with the actual satellite data image</p>
+                    <div>🗺️</div>
+                </div>
+            </div>
+        </div>
+        <div id="viz-engine" class="status info">Testing VisualizationEngine style...</div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Test 3: Alternative Paths</h2>
+        <div>
+            <h3>With ./ prefix:</h3>
+            <img src="./frontend/images/antarctica-impact-map.png" 
+                 alt="Antarctica Dot Slash" 
+                 class="test-image"
+                 onload="updateStatus('dot-slash', 'SUCCESS: ./frontend/ path works', 'success')"
+                 onerror="updateStatus('dot-slash', 'ERROR: ./frontend/ path failed', 'error')" />
+            <div id="dot-slash" class="status info">Loading...</div>
+        </div>
+        
+        <div>
+            <h3>Absolute path from root:</h3>
+            <img src="/frontend/images/antarctica-impact-map.png" 
+                 alt="Antarctica Absolute" 
+                 class="test-image"
+                 onload="updateStatus('absolute', 'SUCCESS: Absolute path works', 'success')"
+                 onerror="updateStatus('absolute', 'ERROR: Absolute path failed', 'error')" />
+            <div id="absolute" class="status info">Loading...</div>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Test 4: Network Request Information</h2>
+        <button onclick="testImageFetch()">Test Fetch API</button>
+        <div id="fetch-results" class="status info">Click button to test</div>
+    </div>
+    
+    <script>
+        // Update URL information
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('base-url').textContent = window.location.origin + window.location.pathname;
+        document.getElementById('protocol').textContent = window.location.protocol;
+        
+        function updateStatus(elementId, message, className) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'status ' + className;
+        }
+        
+        async function testImageFetch() {
+            const resultsDiv = document.getElementById('fetch-results');
+            resultsDiv.textContent = 'Testing...';
+            resultsDiv.className = 'status info';
+            
+            try {
+                const response = await fetch('frontend/images/antarctica-impact-map.png');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    resultsDiv.textContent = `SUCCESS: Fetch worked. Status: ${response.status}, Size: ${blob.size} bytes, Type: ${blob.type}`;
+                    resultsDiv.className = 'status success';
+                } else {
+                    resultsDiv.textContent = `ERROR: Fetch failed. Status: ${response.status} ${response.statusText}`;
+                    resultsDiv.className = 'status error';
+                }
+            } catch (error) {
+                resultsDiv.textContent = `ERROR: Fetch exception: ${error.message}`;
+                resultsDiv.className = 'status error';
+            }
+        }
+        
+        // Log all image load attempts
+        window.addEventListener('error', function(e) {
+            if (e.target.tagName === 'IMG') {
+                console.error('Image failed to load:', e.target.src);
+            }
+        }, true);
+        
+        // Log successful image loads
+        window.addEventListener('load', function(e) {
+            if (e.target.tagName === 'IMG') {
+                console.log('Image loaded successfully:', e.target.src);
+            }
+        }, true);
+    </script>
+</body>
+</html>

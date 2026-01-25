@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Loading Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        img {
+            max-width: 400px;
+            height: auto;
+            border: 2px solid #00ff00;
+            margin: 10px;
+        }
+        .error {
+            color: #ff0000;
+            font-weight: bold;
+        }
+        .success {
+            color: #00ff00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Loading Test for GitHub Pages</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Direct Image Loading</h2>
+        <p>Testing if images load with frontend/ prefix:</p>
+        
+        <div>
+            <h3>Antarctica Map:</h3>
+            <img src="frontend/images/antarctica-impact-map.png" 
+                 alt="Antarctica Impact Map" 
+                 onload="document.getElementById('antarctica-status').innerHTML = 'SUCCESS: Antarctica image loaded'"
+                 onerror="document.getElementById('antarctica-status').innerHTML = 'ERROR: Antarctica image failed to load'" />
+            <p id="antarctica-status" class="error">Loading...</p>
+        </div>
+        
+        <div>
+            <h3>Greenland Map:</h3>
+            <img src="frontend/images/greenland-impact-map.png" 
+                 alt="Greenland Impact Map" 
+                 onload="document.getElementById('greenland-status').innerHTML = 'SUCCESS: Greenland image loaded'"
+                 onerror="document.getElementById('greenland-status').innerHTML = 'ERROR: Greenland image failed to load'" />
+            <p id="greenland-status" class="error">Loading...</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Alternative Paths</h2>
+        <p>Testing alternative path formats:</p>
+        
+        <div>
+            <h3>Absolute Path Test:</h3>
+            <img src="./frontend/images/antarctica-impact-map.png" 
+                 alt="Antarctica Impact Map (absolute)" 
+                 onload="document.getElementById('abs-status').innerHTML = 'SUCCESS: Absolute path works'"
+                 onerror="document.getElementById('abs-status').innerHTML = 'ERROR: Absolute path failed'" />
+            <p id="abs-status" class="error">Loading...</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: JavaScript Dynamic Loading</h2>
+        <p>Testing how JavaScript loads images:</p>
+        <div id="js-test-container"></div>
+        <p id="js-status" class="error">Testing...</p>
+    </div>
+    
+    <script>
+        // Test JavaScript image loading (similar to VisualizationEngine)
+        function testJavaScriptImageLoading() {
+            const container = document.getElementById('js-test-container');
+            const statusElement = document.getElementById('js-status');
+            
+            // Create image element like VisualizationEngine does
+            const imgHTML = `
+                <img src="frontend/images/antarctica-impact-map.png" 
+                     alt="JS Test Antarctica" 
+                     style="max-width: 200px;"
+                     onload="document.getElementById('js-status').innerHTML = 'SUCCESS: JavaScript image loading works'; document.getElementById('js-status').className = 'success';"
+                     onerror="document.getElementById('js-status').innerHTML = 'ERROR: JavaScript image loading failed'; document.getElementById('js-status').className = 'error';" />
+            `;
+            
+            container.innerHTML = imgHTML;
+        }
+        
+        // Run the test when page loads
+        window.onload = function() {
+            testJavaScriptImageLoading();
+        };
+    </script>
+</body>
+</html>
