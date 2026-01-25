@@ -49,7 +49,7 @@ public class IceSheetDataServiceTest {
         
         assertNotNull(stats);
         assertEquals(14_000_000.0, stats.getCurrentSize(), 0.001);
-        assertEquals(-26.9982036, stats.getAmbientTemperature(), 0.0000001);
+        assertEquals(-57.0, stats.getAmbientTemperature(), 0.001);
         assertEquals(-26.9982036, stats.getMeltingRate(), 0.0000001);
     }
     
@@ -60,7 +60,7 @@ public class IceSheetDataServiceTest {
         
         assertNotNull(stats);
         assertEquals(4_380_000.0, stats.getCurrentSize(), 0.001);
-        assertEquals(-4.364067, stats.getAmbientTemperature(), 0.000001);
+        assertEquals(-29.45, stats.getAmbientTemperature(), 0.001);
         assertEquals(-4.364067, stats.getMeltingRate(), 0.000001);
     }
     

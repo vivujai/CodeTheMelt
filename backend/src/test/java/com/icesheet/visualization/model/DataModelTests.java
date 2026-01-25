@@ -19,14 +19,16 @@ public class DataModelTests {
     
     @Test
     public void testTimePeriodEnum() {
+        assertEquals(3_153_600_000L, TimePeriod.CENTURY.getSeconds());
+        assertEquals(315_360_000L, TimePeriod.DECADE.getSeconds());
         assertEquals(31_536_000L, TimePeriod.ANNUAL.getSeconds());
-        assertEquals(2_628_000L, TimePeriod.MONTHLY.getSeconds());
-        assertEquals(604_800L, TimePeriod.WEEKLY.getSeconds());
         
+        assertEquals("Century", TimePeriod.CENTURY.getDisplayName());
+        assertEquals("Decade", TimePeriod.DECADE.getDisplayName());
         assertEquals("Annual", TimePeriod.ANNUAL.getDisplayName());
-        assertEquals("Monthly", TimePeriod.MONTHLY.getDisplayName());
-        assertEquals("Weekly", TimePeriod.WEEKLY.getDisplayName());
         
+        assertEquals(3_153_600_000.0, TimePeriod.CENTURY.getSecondsAsDouble(), 0.001);
+        assertEquals(315_360_000.0, TimePeriod.DECADE.getSecondsAsDouble(), 0.001);
         assertEquals(31_536_000.0, TimePeriod.ANNUAL.getSecondsAsDouble(), 0.001);
     }
     

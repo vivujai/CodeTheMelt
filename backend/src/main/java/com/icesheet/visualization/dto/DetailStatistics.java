@@ -1,5 +1,7 @@
 package com.icesheet.visualization.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /**
  * Data Transfer Object for detail statistics
  * Used for ice sheet detail page display
@@ -7,6 +9,7 @@ package com.icesheet.visualization.dto;
 public class DetailStatistics {
     private final double currentSize;
     private final double ambientTemperature;
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private final double meltingRate;
     
     /**

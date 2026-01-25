@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Visualization</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        /* Override for test page */
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        #visualization-display {
+            width: 100%;
+            min-height: 80vh;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #0066ff;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .test-controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .test-controls button {
+            background: linear-gradient(45deg, #0066ff, #00ffff);
+            border: 2px solid #00ffff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .test-controls button:hover {
+            box-shadow: 0 0 15px #00ffff;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <h1 class="neon-text" style="text-align: center; color: #00ffff; margin-bottom: 20px;">Ice Sheet Visualization Test</h1>
+    
+    <div id="visualization-display">
+        <div class="neon-text" style="color: #808080; text-align: center;">
+            Loading visualization...
+        </div>
+    </div>
+    
+    <div class="test-controls">
+        <button onclick="testAntarcticaOverlay()" class="neon-text">Antarctica Overlay</button>
+        <button onclick="testGreenlandOverlay()" class="neon-text">Greenland Overlay</button>
+        <button onclick="testSideView()" class="neon-text">Side View</button>
+        <button onclick="testSizeGraph()" class="neon-text">Size Graph</button>
+    </div>
+    
+    <script src="js/models/DataTypes.js"></script>
+    <script src="js/components/VisualizationEngine.js"></script>
+    
+    <script>
+        // Test data
+        const testDataAntarctica = {
+            iceSheetName: 'Antarctica',
+            meltingRate: -26.9982036,
+            massLoss: -851.5,
+            initialSize: 14000000,
+            finalSize: 13999148.5,
+            period: TimePeriod.ANNUAL
+        };
+        
+        const testDataGreenland = {
+            iceSheetName: 'Greenland',
+            meltingRate: -4.364067,
+            massLoss: -137.8,
+            initialSize: 4380000,
+            finalSize: 4379862.2,
+            period: TimePeriod.ANNUAL
+        };
+        
+        // Initialize engine
+        const engine = new VisualizationEngine();
+        
+        // Test functions
+        function testAntarcticaOverlay() {
+            console.log('Testing Antarctica overlay...');
+            engine.renderLayerOverlay(testDataAntarctica);
+        }
+        
+        function testGreenlandOverlay() {
+            console.log('Testing Greenland overlay...');
+            engine.renderLayerOverlay(testDataGreenland);
+        }
+        
+        function testSideView() {
+            console.log('Testing side view...');
+            engine.renderSideView(testDataAntarctica);
+        }
+        
+        function testSizeGraph() {
+            console.log('Testing size graph...');
+            engine.renderSizeGraph(testDataAntarctica);
+        }
+        
+        // Auto-load Antarctica overlay on page load
+        window.addEventListener('load', function() {
+            console.log('Page loaded, rendering Antarctica overlay...');
+            setTimeout(() => {
+                testAntarcticaOverlay();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

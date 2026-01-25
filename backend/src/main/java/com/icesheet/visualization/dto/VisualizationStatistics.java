@@ -1,5 +1,6 @@
 package com.icesheet.visualization.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.icesheet.visualization.model.TimePeriod;
 
 /**
@@ -7,6 +8,7 @@ import com.icesheet.visualization.model.TimePeriod;
  * Used for visualization page display
  */
 public class VisualizationStatistics {
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private final double meltingRate;
     private final double massLoss;
     private final double initialSize;

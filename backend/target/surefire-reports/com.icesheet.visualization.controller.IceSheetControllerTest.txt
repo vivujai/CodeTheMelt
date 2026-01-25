@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.icesheet.visualization.controller.IceSheetControllerTest
--------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.423 s - in com.icesheet.visualization.controller.IceSheetControllerTest

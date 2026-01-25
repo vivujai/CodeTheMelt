@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ice Sheet Visualization System</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Title Page -->
+        <div id="title-page" class="page">
+            <div class="title-container">
+                <h1 class="main-title neon-text">Ice Sheet Visualization System</h1>
+                <div class="navigation-buttons">
+                    <button id="greenland-btn" class="nav-button neon-text" onclick="selectIceSheet('GREENLAND')">
+                        Greenland
+                    </button>
+                    <button id="antarctica-btn" class="nav-button neon-text" onclick="selectIceSheet('ANTARCTICA')">
+                        Antarctica
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detail Page Template -->
+        <div id="detail-page" class="page hidden">
+            <div class="detail-container">
+                <div class="page-header">
+                    <button id="detail-menu-btn" class="menu-button nav-button neon-text" onclick="goToMenu()">Menu</button>
+                    <h2 id="detail-title" class="page-title neon-text"></h2>
+                </div>
+                <div id="detail-stats" class="stats-container">
+                    <!-- Current Size, Ambient Temperature, and Melting Rate will be displayed here -->
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Current Size:</span>
+                        <span id="current-size" class="stat-value">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Ambient Temperature:</span>
+                        <span id="ambient-temperature" class="stat-value">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Melting Rate:</span>
+                        <span id="melting-rate" class="stat-value">Loading...</span>
+                    </div>
+                </div>
+                <div class="time-period-buttons">
+                    <button id="century-btn" class="nav-button neon-text" onclick="selectTimePeriod('CENTURY')">Century</button>
+                    <button id="decade-btn" class="nav-button neon-text" onclick="selectTimePeriod('DECADE')">Decade</button>
+                    <button id="annual-btn" class="nav-button neon-text" onclick="selectTimePeriod('ANNUAL')">Annual</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Visualization Page Template -->
+        <div id="visualization-page" class="page hidden">
+            <div class="visualization-container">
+                <div class="top-bar">
+                    <h3 id="viz-ice-sheet-name" class="ice-sheet-name neon-text"></h3>
+                    <button id="exit-btn" class="exit-button nav-button neon-text" onclick="exitVisualization()">Exit</button>
+                </div>
+                <div class="main-content">
+                    <div class="visualization-controls">
+                        <h4 class="controls-title neon-text">Visualization Modes</h4>
+                        <button id="side-view-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('SIDE_VIEW')">Side View</button>
+                        <button id="size-graph-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('SIZE_GRAPH')">Size Graph</button>
+                        <button id="layer-overlay-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('LAYER_OVERLAY')">Layer Overlay</button>
+                    </div>
+                    <div id="visualization-display" class="visualization-area">
+                        <!-- Visualization content will be rendered here -->
+                        <div class="visualization-placeholder neon-text">
+                            Select a visualization mode above
+                        </div>
+                    </div>
+                    <div id="visualization-stats" class="stats-panel">
+                        <!-- Statistics positioned in bottom right corner -->
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Melting Rate:</span>
+                            <span id="viz-melting-rate" class="stat-value neon-text">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Mass Loss:</span>
+                            <span id="viz-mass-loss" class="stat-value neon-text">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Initial Size:</span>
+                            <span id="viz-initial-size" class="stat-value neon-text">Loading...</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/models/DataTypes.js"></script>
+    <script src="js/controllers/NavigationController.js"></script>
+    <script src="js/components/StatisticsDisplay.js"></script>
+    <script src="js/components/VisualizationEngine.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Global navigation functions for HTML onclick handlers
+        function selectIceSheet(iceSheetType) {
+            if (navigationController) {
+                navigationController.navigateToDetailPage(iceSheetType);
+            }
+        }
+        
+        function selectTimePeriod(periodType) {
+            if (navigationController && navigationController.currentIceSheet) {
+                const period = TimePeriod[periodType];
+                navigationController.navigateToVisualizationPage(navigationController.currentIceSheet, period);
+            }
+        }
+        
+        function exitVisualization() {
+            if (navigationController) {
+                navigationController.exitToDetailPage();
+            }
+        }
+        
+        function goToMenu() {
+            if (navigationController) {
+                navigationController.navigateToTitlePage();
+            }
+        }
+        
+        function selectVisualizationMode(modeType) {
+            if (visualizationEngine) {
+                visualizationEngine.updateDisplay(VisualizationType[modeType]);
+            }
+        }
+    </script>
+</body>
+</html>
