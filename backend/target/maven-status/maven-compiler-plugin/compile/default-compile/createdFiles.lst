@@ -1,0 +1,12 @@
+com\icesheet\visualization\dto\VisualizationStatistics.class
+com\icesheet\visualization\model\IceSheetBaseData.class
+com\icesheet\visualization\model\TimePeriod.class
+com\icesheet\visualization\service\StatisticsCalculator.class
+com\icesheet\visualization\IceSheetVisualizationApplication.class
+com\icesheet\visualization\dto\ErrorResponse.class
+com\icesheet\visualization\model\IceSheetBaseData$1.class
+com\icesheet\visualization\service\IceSheetDataService.class
+com\icesheet\visualization\model\IceSheetType.class
+com\icesheet\visualization\controller\IceSheetController.class
+com\icesheet\visualization\dto\DetailStatistics.class
+com\icesheet\visualization\model\VisualizationType.class
