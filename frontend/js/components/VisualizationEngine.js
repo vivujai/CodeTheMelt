@@ -410,14 +410,14 @@ class VisualizationEngine {
                             <div class="overlay-map-container">
                                 <!-- Real Antarctica impact map image -->
                                 <div class="antarctica-impact-image">
-                                    <img src="images/antarctica-impact-map.png" 
+                                    <img src="frontend/images/antarctica-impact-map.png" 
                                          alt="Antarctica Ice Thickness Change Map" 
                                          class="impact-map-img"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                                     <div class="image-placeholder" style="display: none;">
                                         <div class="placeholder-content neon-text">
                                             <h5>Antarctica Impact Map</h5>
-                                            <p>Replace images/antarctica-impact-map.png</p>
+                                            <p>Replace frontend/images/antarctica-impact-map.png</p>
                                             <p>with the actual satellite data image</p>
                                             <div class="placeholder-icon">🗺️</div>
                                         </div>
@@ -514,14 +514,14 @@ class VisualizationEngine {
                             <div class="overlay-map-container">
                                 <!-- Greenland impact map image -->
                                 <div class="greenland-impact-image">
-                                    <img src="images/greenland-impact-map.png" 
+                                    <img src="frontend/images/greenland-impact-map.png" 
                                          alt="Greenland Ice Thickness Change Map" 
                                          class="impact-map-img"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                                     <div class="image-placeholder" style="display: none;">
                                         <div class="placeholder-content neon-text">
                                             <h5>Greenland Impact Map</h5>
-                                            <p>Replace images/greenland-impact-map.png</p>
+                                            <p>Replace frontend/images/greenland-impact-map.png</p>
                                             <p>with the actual satellite data image</p>
                                             <div class="placeholder-icon">🗺️</div>
                                         </div>
