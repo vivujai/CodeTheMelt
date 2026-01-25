@@ -69,19 +69,62 @@ class StatisticsDisplay {
 
     /**
      * Fetch and display visualization statistics from backend API
-     * Requirements: 3.2, 4.4, 6.2
+     * Requirements: 3.2, 4.4, 6.2, 7.5
      * @param {string} iceSheetType - Ice sheet type (GREENLAND or ANTARCTICA)
-     * @param {string} timePeriod - Time period (ANNUAL, MONTHLY, or WEEKLY)
+     * @param {string} timePeriod - Time period (ANNUAL, DECADE, or CENTURY)
      */
     async fetchAndDisplayVisualizationStats(iceSheetType, timePeriod) {
-        try {
-            const response = await fetch(`/api/icesheet/${iceSheetType}/visualization?period=${timePeriod}`);
+        // Define the API call function
+        const apiCall = async () => {
+            const response = await window.errorHandler.fetchWithTimeout(
+                `http://localhost:8080/api/icesheet/${iceSheetType}/visualization?period=${timePeriod}`,
+                {},
+                10000 // 10 second timeout for visualization data
+            );
+            return await response.json();
+        };
+
+        // Define fallback handler
+        const fallbackHandler = (error) => {
+            console.log('Using fallback data for visualization statistics');
+            this.displayErrorStats();
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // Create fallback statistics using base data
+            if (IceSheetBaseData[iceSheetType] && TimePeriod[timePeriod]) {
+                const baseData = IceSheetBaseData[iceSheetType];
+                const period = TimePeriod[timePeriod];
+                
+                const meltingRate = baseData.meltingRateKgPerSecond;
+                const massLoss = Math.abs(meltingRate * period.seconds);
+                const initialSize = baseData.sizeKm2;
+                
+                const fallbackStats = new VisualizationStatistics(
+                    meltingRate,
+                    -massLoss, // Negative for mass loss
+                    initialSize,
+                    initialSize, // Keep finalSize for backend compatibility
+                    baseData.name,
+                    period
+                );
+                
+                // Update visualization engine with fallback data
+                if (window.visualizationEngine) {
+                    window.visualizationEngine.updateWithNewData(fallbackStats);
+                }
+                
+                return fallbackStats;
             }
-            
-            const statsData = await response.json();
+            return null;
+        };
+
+        try {
+            // Execute API call with retry logic and error handling
+            const statsData = await window.errorHandler.executeWithRetry(apiCall, {
+                maxRetries: 3,
+                retryDelay: 2000,
+                operation: `${iceSheetType} visualization data`,
+                fallbackHandler: fallbackHandler
+            });
             
             // Create VisualizationStatistics object
             const stats = new VisualizationStatistics(
@@ -100,10 +143,14 @@ class StatisticsDisplay {
                 window.visualizationEngine.updateWithNewData(stats);
             }
             
+            // Show success message
+            window.errorHandler.showSuccessMessage(`${iceSheetType} visualization data updated`);
+            
             return stats;
+            
         } catch (error) {
-            console.error('Error fetching visualization statistics:', error);
-            this.displayErrorStats();
+            console.error('All attempts to fetch visualization statistics failed:', error);
+            // Fallback handler was already called by errorHandler
             throw error;
         }
     }
@@ -112,7 +159,7 @@ class StatisticsDisplay {
      * Display error message when statistics cannot be loaded
      */
     displayErrorStats() {
-        const errorMessage = 'Error loading data';
+        const errorMessage = 'Unable to load data';
         
         // Update visualization stats with error message
         const meltingRateElement = document.getElementById('viz-melting-rate');
@@ -122,6 +169,15 @@ class StatisticsDisplay {
         if (meltingRateElement) meltingRateElement.textContent = errorMessage;
         if (massLossElement) massLossElement.textContent = errorMessage;
         if (initialSizeElement) initialSizeElement.textContent = errorMessage;
+        
+        // Also update detail stats if on detail page
+        const currentSizeElement = document.getElementById('current-size');
+        const ambientTempElement = document.getElementById('ambient-temperature');
+        const detailMeltingRateElement = document.getElementById('melting-rate');
+        
+        if (currentSizeElement) currentSizeElement.textContent = errorMessage;
+        if (ambientTempElement) ambientTempElement.textContent = errorMessage;
+        if (detailMeltingRateElement) detailMeltingRateElement.textContent = errorMessage;
     }
 
     /**

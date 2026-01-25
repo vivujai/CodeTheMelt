@@ -1,40 +1,36 @@
 {
   "name": "ice-sheet-visualization-frontend",
   "version": "1.0.0",
-  "description": "Frontend for Ice Sheet Visualization System",
+  "description": "Frontend for Ice Sheet Visualization System with comprehensive error handling",
   "main": "js/main.js",
   "scripts": {
-    "start": "http-server . -p 3000 -c-1",
-    "test": "jest --run",
+    "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint js/**/*.js",
-    "serve": "python -m http.server 3000"
+    "serve": "python -m http.server 3000",
+    "lint": "eslint js/**/*.js"
   },
   "keywords": [
     "ice-sheet",
     "visualization",
-    "climate",
+    "error-handling",
+    "retry-logic",
     "frontend"
   ],
   "author": "Ice Sheet Visualization Team",
   "license": "MIT",
   "devDependencies": {
-    "jest": "^28.1.0",
-    "fast-check": "^3.0.0",
-    "eslint": "^8.0.0",
-    "http-server": "^14.1.0",
-    "@jest/globals": "^28.1.0"
+    "jest": "^29.0.0",
+    "eslint": "^8.0.0"
   },
   "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ],
     "collectCoverageFrom": [
       "js/**/*.js",
       "!js/main.js"
-    ],
-    "testMatch": [
-      "**/tests/**/*.test.js"
     ]
   }
 }

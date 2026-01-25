@@ -1,4 +1,5 @@
 com\icesheet\visualization\dto\VisualizationStatistics.class
+com\icesheet\visualization\controller\IceSheetController$HealthStatus.class
 com\icesheet\visualization\model\IceSheetBaseData.class
 com\icesheet\visualization\model\TimePeriod.class
 com\icesheet\visualization\service\StatisticsCalculator.class

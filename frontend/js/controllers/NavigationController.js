@@ -243,30 +243,46 @@ class NavigationController {
 
     /**
      * Load detail statistics from backend API
-     * Requirements: 3.1, 6.2
+     * Requirements: 3.1, 6.2, 7.5
      * @param {string} iceSheet - IceSheetType value
      */
     async loadDetailStatistics(iceSheet) {
         console.log(`Loading detail statistics for ${iceSheet}`);
         
+        // Define the API call function
+        const apiCall = async () => {
+            const response = await window.errorHandler.fetchWithTimeout(
+                `http://localhost:8080/api/icesheet/${iceSheet}/details`,
+                {},
+                8000 // 8 second timeout
+            );
+            return await response.json();
+        };
+
+        // Define fallback handler
+        const fallbackHandler = (error) => {
+            console.log('Using fallback data for detail statistics');
+            this.displayFallbackDetailStatistics(iceSheet);
+        };
+
         try {
-            // Fetch data from backend API - Requirements: 6.2
-            const response = await fetch(`http://localhost:8080/api/icesheet/${iceSheet}/details`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const detailStats = await response.json();
+            // Execute API call with retry logic and error handling
+            const detailStats = await window.errorHandler.executeWithRetry(apiCall, {
+                maxRetries: 2,
+                retryDelay: 1500,
+                operation: `${iceSheet} detail statistics`,
+                fallbackHandler: fallbackHandler
+            });
             
             // Update UI with fetched statistics - Requirements: 3.1
             this.displayDetailStatistics(detailStats);
             
-        } catch (error) {
-            console.error('Error loading detail statistics:', error);
+            // Show success message
+            window.errorHandler.showSuccessMessage(`${iceSheet} data loaded successfully`);
             
-            // Fallback to base data if API call fails
-            this.displayFallbackDetailStatistics(iceSheet);
+        } catch (error) {
+            console.error('All attempts to load detail statistics failed:', error);
+            // Fallback handler was already called by errorHandler
         }
     }
 
@@ -327,7 +343,7 @@ class NavigationController {
 
     /**
      * Load visualization statistics from backend API
-     * Requirements: 3.2, 4.4, 6.2
+     * Requirements: 3.2, 4.4, 6.2, 7.5
      * @param {string} iceSheet - IceSheetType value
      * @param {object} period - TimePeriod value
      */
@@ -335,7 +351,7 @@ class NavigationController {
         console.log(`Loading visualization statistics for ${iceSheet} - ${period.displayName}`);
         
         try {
-            // Use StatisticsDisplay component to fetch and display stats
+            // Use StatisticsDisplay component to fetch and display stats with error handling
             if (window.statisticsDisplay) {
                 const stats = await window.statisticsDisplay.fetchAndDisplayVisualizationStats(iceSheet, period.name);
                 
@@ -345,10 +361,15 @@ class NavigationController {
                 }
             } else {
                 console.error('StatisticsDisplay component not available');
+                window.errorHandler.showErrorMessage(
+                    'Visualization component not available. Please refresh the page.',
+                    'client'
+                );
                 this.displayFallbackVisualizationStatistics(iceSheet, period);
             }
         } catch (error) {
             console.error('Error loading visualization statistics:', error);
+            // Error handling is managed by StatisticsDisplay component
             this.displayFallbackVisualizationStatistics(iceSheet, period);
         }
     }

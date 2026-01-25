@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Test Runner - Task 11.2</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .status-ready {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-running {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .content {
+            display: flex;
+            height: 600px;
+        }
+        
+        .test-log {
+            flex: 1;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #f8f8f2;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            overflow-y: auto;
+            border-right: 1px solid #dee2e6;
+        }
+        
+        .log-entry {
+            margin-bottom: 4px;
+            padding: 2px 0;
+        }
+        
+        .log-entry.info {
+            color: #8be9fd;
+        }
+        
+        .log-entry.success {
+            color: #50fa7b;
+        }
+        
+        .log-entry.error {
+            color: #ff5555;
+        }
+        
+        .log-entry.warning {
+            color: #ffb86c;
+        }
+        
+        .app-preview {
+            flex: 1;
+            background: #f8f9fa;
+        }
+        
+        .app-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .results-summary {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .result-card.pass {
+            border-left-color: #28a745;
+        }
+        
+        .result-card.fail {
+            border-left-color: #dc3545;
+        }
+        
+        .result-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .result-card p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #28a745);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧊 Ice Sheet Visualization - Workflow Tests</h1>
+            <p>Task 11.2: Test complete user workflows from title page through visualization</p>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="runAllTests()" id="run-btn">
+                <span id="run-text">Run All Tests</span>
+                <span id="loading" class="loading" style="display: none;"></span>
+            </button>
+            <button class="btn btn-secondary" onclick="clearLog()">Clear Log</button>
+            <button class="btn btn-success" onclick="openApp()" target="_blank">Open Application</button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            <div id="status" class="status-badge status-ready">Ready to Test</div>
+        </div>
+        
+        <div class="content">
+            <div class="test-log" id="test-log">
+                <div class="log-entry info">[READY] Workflow test suite initialized</div>
+                <div class="log-entry info">[INFO] Click 'Run All Tests' to begin comprehensive testing</div>
+                <div class="log-entry info">[INFO] Tests will verify:</div>
+                <div class="log-entry info">  • Navigation works end-to-end (Req 1.2, 1.4)</div>
+                <div class="log-entry info">  • Statistics update correctly across all pages (Req 4.4)</div>
+                <div class="log-entry info">  • Backend API integration</div>
+                <div class="log-entry info">  • Complete user workflows</div>
+            </div>
+            <div class="app-preview">
+                <iframe id="app-frame" class="app-frame" src="http://localhost:3000" title="Ice Sheet Visualization Application"></iframe>
+            </div>
+        </div>
+        
+        <div class="results-summary">
+            <h3>Test Results Summary</h3>
+            <div class="results-grid" id="results-grid">
+                <div class="result-card">
+                    <h4>Waiting for Tests</h4>
+                    <p>Click 'Run All Tests' to begin testing workflow requirements</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="test-workflow-automation.js"></script>
+    <script>
+        let tester = null;
+        let currentProgress = 0;
+        
+        function updateStatus(text, className) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = text;
+            statusEl.className = `status-badge ${className}`;
+        }
+        
+        function updateProgress(percent) {
+            const progressEl = document.getElementById('progress');
+            progressEl.style.width = `${percent}%`;
+        }
+        
+        function setRunning(isRunning) {
+            const runBtn = document.getElementById('run-btn');
+            const runText = document.getElementById('run-text');
+            const loading = document.getElementById('loading');
+            
+            if (isRunning) {
+                runBtn.disabled = true;
+                runText.textContent = 'Running Tests...';
+                loading.style.display = 'inline-block';
+                updateStatus('Running Tests...', 'status-running');
+            } else {
+                runBtn.disabled = false;
+                runText.textContent = 'Run All Tests';
+                loading.style.display = 'none';
+            }
+        }
+        
+        function displayResults(results) {
+            const grid = document.getElementById('results-grid');
+            grid.innerHTML = '';
+            
+            let totalPassed = 0;
+            let totalTests = 0;
+            
+            Object.entries(results).forEach(([suiteName, suiteResult]) => {
+                totalTests++;
+                if (suiteResult.passed) totalPassed++;
+                
+                const card = document.createElement('div');
+                card.className = `result-card ${suiteResult.passed ? 'pass' : 'fail'}`;
+                
+                let details = '';
+                if (suiteResult.results && Array.isArray(suiteResult.results)) {
+                    const passed = suiteResult.results.filter(r => r.result?.passed || r.status === 'pass').length;
+                    const total = suiteResult.results.length;
+                    details = `${passed}/${total} tests passed`;
+                } else if (suiteResult.error) {
+                    details = `Error: ${suiteResult.error}`;
+                } else {
+                    details = suiteResult.passed ? 'All tests passed' : 'Some tests failed';
+                }
+                
+                card.innerHTML = `
+                    <h4>${suiteResult.passed ? '✅' : '❌'} ${suiteName}</h4>
+                    <p>${details}</p>
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+            // Update overall status
+            if (totalPassed === totalTests) {
+                updateStatus(`All Tests Passed (${totalPassed}/${totalTests})`, 'status-pass');
+            } else {
+                updateStatus(`Tests Failed (${totalPassed}/${totalTests})`, 'status-fail');
+            }
+        }
+        
+        async function runAllTests() {
+            setRunning(true);
+            updateProgress(0);
+            
+            try {
+                tester = new WorkflowTester();
+                
+                // Override log method to display in UI
+                const originalLog = tester.log.bind(tester);
+                tester.log = function(message, type = 'info') {
+                    originalLog(message, type);
+                    
+                    const logContainer = document.getElementById('test-log');
+                    const logElement = document.createElement('div');
+                    logElement.className = `log-entry ${type}`;
+                    const timestamp = new Date().toLocaleTimeString();
+                    logElement.textContent = `[${timestamp}] ${message}`;
+                    logContainer.appendChild(logElement);
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                };
+                
+                // Run tests with progress updates
+                const testSuites = [
+                    { name: 'Backend Connectivity', weight: 25 },
+                    { name: 'Navigation Flow', weight: 25 },
+                    { name: 'Statistics Updates', weight: 25 },
+                    { name: 'Complete Workflows', weight: 25 }
+                ];
+                
+                let completedWeight = 0;
+                
+                // Backend Connectivity
+                updateProgress(5);
+                const backendResult = await tester.testBackendConnectivity();
+                completedWeight += testSuites[0].weight;
+                updateProgress(completedWeight);
+                
+                // Navigation Flow
+                const navigationResult = await tester.testNavigationFlow();
+                completedWeight += testSuites[1].weight;
+                updateProgress(completedWeight);
+                
+                // Statistics Updates
+                const statisticsResult = await tester.testStatisticsUpdates();
+                completedWeight += testSuites[2].weight;
+                updateProgress(completedWeight);
+                
+                // Complete Workflows
+                const workflowResult = await tester.testCompleteWorkflows();
+                completedWeight += testSuites[3].weight;
+                updateProgress(100);
+                
+                const allResults = {
+                    'Backend Connectivity': backendResult,
+                    'Navigation Flow': navigationResult,
+                    'Statistics Updates': statisticsResult,
+                    'Complete Workflows': workflowResult
+                };
+                
+                displayResults(allResults);
+                
+                // Generate final report
+                const report = tester.generateReport();
+                console.log('Complete Test Report:', report);
+                
+            } catch (error) {
+                console.error('Test suite failed:', error);
+                updateStatus('Test Suite Failed', 'status-fail');
+                
+                const logContainer = document.getElementById('test-log');
+                const errorElement = document.createElement('div');
+                errorElement.className = 'log-entry error';
+                errorElement.textContent = `[ERROR] Test suite failed: ${error.message}`;
+                logContainer.appendChild(errorElement);
+            } finally {
+                setRunning(false);
+            }
+        }
+        
+        function clearLog() {
+            const logContainer = document.getElementById('test-log');
+            logContainer.innerHTML = '<div class="log-entry info">[CLEARED] Log cleared</div>';
+            
+            const grid = document.getElementById('results-grid');
+            grid.innerHTML = `
+                <div class="result-card">
+                    <h4>Waiting for Tests</h4>
+                    <p>Click 'Run All Tests' to begin testing workflow requirements</p>
+                </div>
+            `;
+            
+            updateStatus('Ready to Test', 'status-ready');
+            updateProgress(0);
+        }
+        
+        function openApp() {
+            window.open('http://localhost:3000', '_blank');
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            console.log('Workflow test runner initialized');
+        });
+    </script>
+</body>
+</html>

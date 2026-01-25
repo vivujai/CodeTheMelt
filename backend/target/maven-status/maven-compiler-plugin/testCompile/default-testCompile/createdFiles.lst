@@ -1,4 +1,6 @@
+com\icesheet\visualization\controller\IceSheetControllerIntegrationTest.class
 com\icesheet\visualization\service\StatisticsCalculatorTest.class
 com\icesheet\visualization\controller\IceSheetControllerTest.class
 com\icesheet\visualization\model\DataModelTests.class
 com\icesheet\visualization\service\IceSheetDataServiceTest.class
+com\icesheet\visualization\service\ConcurrentRequestTest.class

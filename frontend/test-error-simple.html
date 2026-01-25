@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Error Handling Test</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/error-notifications.css">
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            padding: 20px;
+        }
+        
+        .test-button {
+            background: linear-gradient(45deg, #0066ff, #00ffff);
+            border: 2px solid #00ffff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            box-shadow: 0 0 15px #00ffff;
+        }
+        
+        .test-results {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .success { color: #00ff88; }
+        .error { color: #ff4444; }
+    </style>
+</head>
+<body>
+    <h1 class="neon-text">Error Handling Verification</h1>
+    
+    <div>
+        <button class="test-button" onclick="testBasicErrorHandling()">Test Basic Error Handling</button>
+        <button class="test-button" onclick="testRetryLogic()">Test Retry Logic</button>
+        <button class="test-button" onclick="testNotifications()">Test Notifications</button>
+        <button class="test-button" onclick="testAPIIntegration()">Test API Integration</button>
+        <button class="test-button" onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="test-results" class="test-results">
+        <div class="success">✓ Error handling system loaded successfully</div>
+        <div>Click buttons above to test different error handling features</div>
+    </div>
+    
+    <script src="js/models/DataTypes.js"></script>
+    <script src="js/utils/ErrorHandler.js"></script>
+    <script src="js/controllers/NavigationController.js"></script>
+    <script src="js/components/StatisticsDisplay.js"></script>
+    
+    <script>
+        function logResult(message, isSuccess = true) {
+            const results = document.getElementById('test-results');
+            const className = isSuccess ? 'success' : 'error';
+            const icon = isSuccess ? '✓' : '✗';
+            results.innerHTML += `<div class="${className}">${icon} ${message}</div>`;
+        }
+        
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '<div class="success">✓ Results cleared</div>';
+        }
+        
+        async function testBasicErrorHandling() {
+            logResult('Testing basic error handling...');
+            
+            try {
+                // Test error categorization
+                const networkError = new TypeError('Failed to fetch');
+                const category = window.errorHandler.categorizeError(networkError);
+                
+                if (category === 'network') {
+                    logResult('✓ Network error categorization works');
+                } else {
+                    logResult('✗ Network error categorization failed', false);
+                }
+                
+                // Test user-friendly messages
+                const message = window.errorHandler.getUserFriendlyMessage('network', 'test');
+                if (message && message.includes('connect')) {
+                    logResult('✓ User-friendly messages work');
+                } else {
+                    logResult('✗ User-friendly messages failed', false);
+                }
+                
+                logResult('Basic error handling tests completed');
+                
+            } catch (error) {
+                logResult(`✗ Basic error handling test failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testRetryLogic() {
+            logResult('Testing retry logic...');
+            
+            try {
+                // Test successful retry
+                let attempts = 0;
+                const mockApiCall = async () => {
+                    attempts++;
+                    if (attempts < 3) {
+                        throw new Error('Temporary failure');
+                    }
+                    return { success: true, attempts };
+                };
+                
+                const result = await window.errorHandler.executeWithRetry(mockApiCall, {
+                    maxRetries: 3,
+                    retryDelay: 100,
+                    operation: 'retry test'
+                });
+                
+                if (result.success && result.attempts === 3) {
+                    logResult('✓ Retry logic works correctly');
+                } else {
+                    logResult('✗ Retry logic failed', false);
+                }
+                
+                // Test retry failure with fallback
+                let fallbackCalled = false;
+                const failingApiCall = async () => {
+                    throw new Error('Persistent failure');
+                };
+                
+                try {
+                    await window.errorHandler.executeWithRetry(failingApiCall, {
+                        maxRetries: 1,
+                        retryDelay: 50,
+                        operation: 'failure test',
+                        fallbackHandler: () => { fallbackCalled = true; }
+                    });
+                } catch (error) {
+                    if (fallbackCalled) {
+                        logResult('✓ Fallback handler works correctly');
+                    } else {
+                        logResult('✗ Fallback handler not called', false);
+                    }
+                }
+                
+                logResult('Retry logic tests completed');
+                
+            } catch (error) {
+                logResult(`✗ Retry logic test failed: ${error.message}`, false);
+            }
+        }
+        
+        function testNotifications() {
+            logResult('Testing notification system...');
+            
+            try {
+                // Test error notification
+                window.errorHandler.showErrorMessage('Test error message', 'network');
+                logResult('✓ Error notification displayed');
+                
+                setTimeout(() => {
+                    // Test success notification
+                    window.errorHandler.showSuccessMessage('Test success message');
+                    logResult('✓ Success notification displayed');
+                    
+                    setTimeout(() => {
+                        // Test loading notification
+                        window.errorHandler.showLoadingMessage('test operation');
+                        logResult('✓ Loading notification displayed');
+                        
+                        setTimeout(() => {
+                            // Clear notifications
+                            window.errorHandler.clearErrorMessages();
+                            logResult('✓ Notifications cleared');
+                            logResult('Notification tests completed');
+                        }, 1000);
+                    }, 1000);
+                }, 1000);
+                
+            } catch (error) {
+                logResult(`✗ Notification test failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testAPIIntegration() {
+            logResult('Testing API integration with error handling...');
+            
+            try {
+                // Test with a mock API call that will fail (no backend running)
+                const apiCall = async () => {
+                    const response = await window.errorHandler.fetchWithTimeout(
+                        'http://localhost:8080/api/icesheet/ANTARCTICA/details',
+                        {},
+                        3000
+                    );
+                    return await response.json();
+                };
+                
+                let fallbackExecuted = false;
+                const fallbackHandler = () => {
+                    fallbackExecuted = true;
+                    logResult('✓ API fallback handler executed');
+                };
+                
+                try {
+                    await window.errorHandler.executeWithRetry(apiCall, {
+                        maxRetries: 1,
+                        retryDelay: 500,
+                        operation: 'Antarctica detail stats',
+                        fallbackHandler: fallbackHandler
+                    });
+                } catch (error) {
+                    if (fallbackExecuted) {
+                        logResult('✓ API error handling works correctly');
+                    } else {
+                        logResult('✗ API fallback not executed', false);
+                    }
+                }
+                
+                // Test StatisticsDisplay integration
+                if (window.statisticsDisplay) {
+                    logResult('✓ StatisticsDisplay component available');
+                    
+                    // Test error display
+                    window.statisticsDisplay.displayErrorStats();
+                    logResult('✓ Error stats display works');
+                } else {
+                    logResult('✗ StatisticsDisplay component not available', false);
+                }
+                
+                logResult('API integration tests completed');
+                
+            } catch (error) {
+                logResult(`✗ API integration test failed: ${error.message}`, false);
+            }
+        }
+        
+        // Initialize components
+        window.addEventListener('load', function() {
+            // Initialize global components
+            window.navigationController = new NavigationController();
+            window.statisticsDisplay = new StatisticsDisplay();
+            window.visualizationEngine = new VisualizationEngine();
+            
+            logResult('All components initialized successfully');
+            logResult('Error handling system ready for testing');
+        });
+    </script>
+</body>
+</html>

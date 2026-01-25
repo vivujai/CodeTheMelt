@@ -27,19 +27,60 @@ body {
     display: none;
 }
 
-/* Neon text effects - glow matches text color */
+/* Enhanced Neon text effects - glow matches text color */
 .neon-text {
     text-shadow: 
         0 0 5px currentColor,
         0 0 10px currentColor,
         0 0 15px currentColor,
-        0 0 20px currentColor;
+        0 0 20px currentColor,
+        0 0 25px currentColor;
+    animation: neonPulse 2s ease-in-out infinite alternate;
 }
 
-/* Color scheme: black, blue, grey, white only */
+/* Neon glow animation */
+@keyframes neonPulse {
+    from {
+        text-shadow: 
+            0 0 5px currentColor,
+            0 0 10px currentColor,
+            0 0 15px currentColor,
+            0 0 20px currentColor,
+            0 0 25px currentColor;
+    }
+    to {
+        text-shadow: 
+            0 0 2px currentColor,
+            0 0 5px currentColor,
+            0 0 8px currentColor,
+            0 0 12px currentColor,
+            0 0 15px currentColor;
+    }
+}
+
+/* Strict Color scheme: black, blue, grey, red, white only (apart from visuals) */
 .primary-blue { color: #0066ff; }
 .secondary-grey { color: #808080; }
 .accent-white { color: white; }
+.accent-red { color: #ff4444; }
+.neon-blue { color: #00ffff; }
+
+/* Enforce color scheme on all text elements */
+h1, h2, h3, h4, h5, h6 {
+    color: #00ffff; /* Neon blue for headers */
+}
+
+p, span, div {
+    color: white; /* Default white text */
+}
+
+.stat-label {
+    color: #00ffff !important; /* Neon blue for labels */
+}
+
+.stat-value {
+    color: white !important; /* White for values */
+}
 
 /* Title Page Styling */
 .title-container {
@@ -53,6 +94,32 @@ body {
     color: #00ffff;
     font-weight: bold;
     letter-spacing: 2px;
+    text-shadow: 
+        0 0 10px #00ffff,
+        0 0 20px #00ffff,
+        0 0 30px #00ffff,
+        0 0 40px #00ffff,
+        0 0 50px #00ffff;
+    animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from {
+        text-shadow: 
+            0 0 10px #00ffff,
+            0 0 20px #00ffff,
+            0 0 30px #00ffff,
+            0 0 40px #00ffff,
+            0 0 50px #00ffff;
+    }
+    to {
+        text-shadow: 
+            0 0 5px #00ffff,
+            0 0 10px #00ffff,
+            0 0 15px #00ffff,
+            0 0 20px #00ffff,
+            0 0 25px #00ffff;
+    }
 }
 
 .navigation-buttons {
@@ -62,7 +129,7 @@ body {
     gap: 30px;
 }
 
-/* Responsive button styling */
+/* Enhanced responsive button styling with neon effects */
 .nav-button {
     background: linear-gradient(45deg, #0066ff, #00ffff);
     border: 2px solid #00ffff;
@@ -76,19 +143,35 @@ body {
     transition: all 0.3s ease;
     min-width: 250px;
     letter-spacing: 1px;
+    text-shadow: 
+        0 0 5px white,
+        0 0 10px white,
+        0 0 15px white;
+    box-shadow: 
+        0 0 10px rgba(0, 255, 255, 0.3),
+        inset 0 0 10px rgba(0, 255, 255, 0.1);
 }
 
 .nav-button:hover {
     box-shadow: 
         0 0 20px #00ffff,
         0 0 30px #00ffff,
-        0 0 40px #00ffff;
+        0 0 40px #00ffff,
+        inset 0 0 20px rgba(0, 255, 255, 0.2);
     transform: scale(1.05);
     background: linear-gradient(45deg, #00ffff, #0066ff);
+    text-shadow: 
+        0 0 8px white,
+        0 0 15px white,
+        0 0 20px white;
 }
 
 .nav-button:active {
     transform: scale(0.98);
+    box-shadow: 
+        0 0 15px #00ffff,
+        0 0 25px #00ffff,
+        inset 0 0 15px rgba(0, 255, 255, 0.3);
 }
 
 /* Detail Page Styling */
@@ -122,6 +205,10 @@ body {
     font-size: 2.5rem;
     margin-bottom: 40px;
     color: #00ffff;
+    text-shadow: 
+        0 0 8px #00ffff,
+        0 0 15px #00ffff,
+        0 0 25px #00ffff;
 }
 
 .stats-container {
@@ -192,6 +279,10 @@ body {
     left: 40px;
     top: 20px;
     margin: 0;
+    text-shadow: 
+        0 0 8px #00ffff,
+        0 0 15px #00ffff,
+        0 0 25px #00ffff;
 }
 
 /* Exit option positioned in top right corner */
@@ -292,19 +383,39 @@ body {
     min-width: 140px;
     background: rgba(0, 102, 255, 0.2);
     border: 1px solid #0066ff;
+    color: white;
     text-align: center;
     transition: all 0.3s ease;
+    border-radius: 8px;
+    cursor: pointer;
+    text-shadow: 
+        0 0 3px white,
+        0 0 6px white;
+    box-shadow: 
+        0 0 5px rgba(0, 102, 255, 0.3),
+        inset 0 0 5px rgba(0, 102, 255, 0.1);
 }
 
 .viz-mode-button:hover {
     background: rgba(0, 255, 255, 0.2);
     border-color: #00ffff;
+    box-shadow: 
+        0 0 10px rgba(0, 255, 255, 0.5),
+        inset 0 0 10px rgba(0, 255, 255, 0.2);
+    text-shadow: 
+        0 0 5px white,
+        0 0 10px white;
 }
 
 .viz-mode-button.active {
     background: rgba(0, 255, 255, 0.3);
     border-color: #00ffff;
-    box-shadow: 0 0 10px #00ffff;
+    box-shadow: 
+        0 0 15px #00ffff,
+        inset 0 0 15px rgba(0, 255, 255, 0.3);
+    text-shadow: 
+        0 0 8px white,
+        0 0 15px white;
 }
 
 /* Side View Visualization - Enhanced with detailed geological layers */

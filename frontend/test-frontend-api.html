@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #000; color: #0ff; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #0ff; }
+        .success { border-color: #0f0; color: #0f0; }
+        .error { border-color: #f00; color: #f00; }
+        button { background: #000; color: #0ff; border: 1px solid #0ff; padding: 10px; margin: 5px; cursor: pointer; }
+        button:hover { background: #0ff; color: #000; }
+        .loading { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>Frontend API Connection Test</h1>
+    <p>This test verifies that the frontend can successfully communicate with the backend API.</p>
+    
+    <button onclick="testDetailAPI()">Test Detail API</button>
+    <button onclick="testVisualizationAPI()">Test Visualization API</button>
+    <button onclick="testWithErrorHandler()">Test with Error Handler</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+    
+    <script src="js/utils/ErrorHandler.js"></script>
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(message, isSuccess = true, isLoading = false) {
+            const div = document.createElement('div');
+            div.className = `result ${isLoading ? 'loading' : (isSuccess ? 'success' : 'error')}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            resultsDiv.appendChild(div);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+        
+        async function testDetailAPI() {
+            addResult('Testing Detail API with direct fetch...', true, true);
+            
+            try {
+                // Test Greenland
+                const greenlandResponse = await fetch('http://localhost:8080/api/icesheet/GREENLAND/details');
+                
+                if (!greenlandResponse.ok) {
+                    throw new Error(`HTTP ${greenlandResponse.status}: ${greenlandResponse.statusText}`);
+                }
+                
+                const greenlandData = await greenlandResponse.json();
+                addResult(`✅ Greenland Details: Size=${greenlandData.currentSize.toLocaleString()} km², Temp=${greenlandData.ambientTemperature}°C, Rate=${greenlandData.meltingRate} kg/s`);
+                
+                // Test Antarctica
+                const antarcticaResponse = await fetch('http://localhost:8080/api/icesheet/ANTARCTICA/details');
+                const antarcticaData = await antarcticaResponse.json();
+                addResult(`✅ Antarctica Details: Size=${antarcticaData.currentSize.toLocaleString()} km², Temp=${antarcticaData.ambientTemperature}°C, Rate=${antarcticaData.meltingRate} kg/s`);
+                
+            } catch (error) {
+                addResult(`❌ Detail API Failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testVisualizationAPI() {
+            addResult('Testing Visualization API with direct fetch...', true, true);
+            
+            try {
+                const periods = ['ANNUAL', 'DECADE', 'CENTURY'];
+                
+                for (const period of periods) {
+                    const response = await fetch(`http://localhost:8080/api/icesheet/GREENLAND/visualization?period=${period}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status} for ${period}`);
+                    }
+                    
+                    const data = await response.json();
+                    addResult(`✅ Greenland ${period}: Mass Loss=${Math.abs(data.massLoss).toLocaleString()} kg, Initial=${data.initialSize.toLocaleString()} km²`);
+                }
+                
+            } catch (error) {
+                addResult(`❌ Visualization API Failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testWithErrorHandler() {
+            addResult('Testing API with Error Handler utility...', true, true);
+            
+            try {
+                // Test using the error handler utility
+                const response = await window.errorHandler.fetchWithTimeout(
+                    'http://localhost:8080/api/icesheet/ANTARCTICA/visualization?period=ANNUAL',
+                    {},
+                    5000
+                );
+                
+                const data = await response.json();
+                addResult(`✅ Error Handler Test: Antarctica Annual - Mass Loss=${Math.abs(data.massLoss).toLocaleString()} kg`);
+                
+                // Test error handler retry logic with invalid endpoint
+                try {
+                    await window.errorHandler.executeWithRetry(async () => {
+                        const response = await window.errorHandler.fetchWithTimeout(
+                            'http://localhost:8080/api/icesheet/INVALID/details',
+                            {},
+                            3000
+                        );
+                        return await response.json();
+                    }, {
+                        maxRetries: 1,
+                        retryDelay: 500,
+                        operation: 'Invalid endpoint test'
+                    });
+                } catch (error) {
+                    addResult(`✅ Error Handler correctly caught invalid endpoint: ${error.message}`);
+                }
+                
+            } catch (error) {
+                addResult(`❌ Error Handler Test Failed: ${error.message}`, false);
+            }
+        }
+        
+        // Auto-run basic test on page load
+        window.addEventListener('load', () => {
+            addResult('Frontend API test ready. Backend should be running on port 8080.');
+            setTimeout(() => testDetailAPI(), 1000);
+        });
+    </script>
+</body>
+</html>
+</content>
+</invoke>

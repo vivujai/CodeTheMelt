@@ -1,0 +1,262 @@
+/**
+ * Error Notifications Styles for Ice Sheet Visualization System
+ * Provides styling for error messages, loading indicators, and retry notifications
+ * Requirements: 7.5
+ */
+
+/* Error notifications container */
+.error-notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+/* Base notification styles */
+.error-notification {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+    animation: slideIn 0.3s ease-out;
+    pointer-events: auto;
+    font-family: 'Orbitron', monospace;
+}
+
+/* Notification content wrapper */
+.notification-content {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    gap: 12px;
+}
+
+/* Error notification */
+.error-notification.error {
+    border-color: #ff4444;
+    background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(0, 0, 0, 0.9));
+}
+
+.error-notification.error .error-icon {
+    color: #ff4444;
+    font-size: 24px;
+    text-shadow: 0 0 10px #ff4444;
+}
+
+.error-notification.error .error-text {
+    flex: 1;
+    color: #ffffff;
+}
+
+.error-notification.error .error-title {
+    font-weight: bold;
+    font-size: 14px;
+    color: #ff4444;
+    text-shadow: 0 0 5px #ff4444;
+    margin-bottom: 4px;
+}
+
+.error-notification.error .error-message {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #cccccc;
+}
+
+/* Success notification */
+.error-notification.success {
+    border-color: #00ff88;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 0, 0, 0.9));
+}
+
+.error-notification.success .success-icon {
+    color: #00ff88;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ff88;
+}
+
+.error-notification.success .success-text {
+    flex: 1;
+    color: #ffffff;
+    font-size: 13px;
+    text-shadow: 0 0 5px #00ff88;
+}
+
+/* Loading notification */
+.error-notification.loading {
+    border-color: #00aaff;
+    background: linear-gradient(135deg, rgba(0, 170, 255, 0.1), rgba(0, 0, 0, 0.9));
+}
+
+.error-notification.loading .notification-content {
+    color: #00aaff;
+    text-shadow: 0 0 5px #00aaff;
+}
+
+/* Retry notification */
+.error-notification.retry {
+    border-color: #ffaa00;
+    background: linear-gradient(135deg, rgba(255, 170, 0, 0.1), rgba(0, 0, 0, 0.9));
+}
+
+.error-notification.retry .notification-content {
+    color: #ffaa00;
+    text-shadow: 0 0 5px #ffaa00;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.error-notification.retry .retry-countdown {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+/* Close button */
+.error-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.error-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* Loading spinner */
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid #00aaff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Retry spinner */
+.retry-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid #ffaa00;
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error type specific styling */
+.error-notification.offline {
+    border-color: #888888;
+}
+
+.error-notification.network {
+    border-color: #ff6600;
+}
+
+.error-notification.server {
+    border-color: #cc0000;
+}
+
+.error-notification.timeout {
+    border-color: #ff9900;
+}
+
+.error-notification.notfound {
+    border-color: #9966ff;
+}
+
+.error-notification.client {
+    border-color: #ff3366;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .error-notifications-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .notification-content {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .error-notification.error .error-title {
+        font-size: 13px;
+    }
+    
+    .error-notification.error .error-message {
+        font-size: 11px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .error-notification {
+        border-width: 3px;
+        box-shadow: none;
+    }
+    
+    .error-notification.error {
+        background: #000000;
+        border-color: #ffffff;
+    }
+    
+    .error-notification.error .error-icon,
+    .error-notification.error .error-title {
+        color: #ffffff;
+        text-shadow: none;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .error-notification {
+        animation: none;
+    }
+    
+    .loading-spinner,
+    .retry-spinner {
+        animation: none;
+        border: 2px solid currentColor;
+        border-radius: 0;
+    }
+    
+    .error-close {
+        transition: none;
+    }
+}

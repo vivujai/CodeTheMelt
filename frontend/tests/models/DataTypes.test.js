@@ -26,13 +26,13 @@ describe('Frontend Data Types', () => {
             expect(TimePeriod.ANNUAL.seconds).toBe(31536000);
             expect(TimePeriod.ANNUAL.displayName).toBe('Annual');
             
-            expect(TimePeriod.MONTHLY.name).toBe('MONTHLY');
-            expect(TimePeriod.MONTHLY.seconds).toBe(2628000);
-            expect(TimePeriod.MONTHLY.displayName).toBe('Monthly');
+            expect(TimePeriod.DECADE.name).toBe('DECADE');
+            expect(TimePeriod.DECADE.seconds).toBe(315360000);
+            expect(TimePeriod.DECADE.displayName).toBe('Decade');
             
-            expect(TimePeriod.WEEKLY.name).toBe('WEEKLY');
-            expect(TimePeriod.WEEKLY.seconds).toBe(604800);
-            expect(TimePeriod.WEEKLY.displayName).toBe('Weekly');
+            expect(TimePeriod.CENTURY.name).toBe('CENTURY');
+            expect(TimePeriod.CENTURY.seconds).toBe(3153600000);
+            expect(TimePeriod.CENTURY.displayName).toBe('Century');
         });
     });
     
@@ -72,14 +72,14 @@ describe('Frontend Data Types', () => {
     describe('VisualizationStatistics', () => {
         test('should create instance with correct properties', () => {
             const stats = new VisualizationStatistics(
-                -5.2, 1000, 2000000, 1999000, 'Test Sheet', TimePeriod.WEEKLY
+                -5.2, 1000, 2000000, 1999000, 'Test Sheet', TimePeriod.CENTURY
             );
             expect(stats.meltingRate).toBe(-5.2);
             expect(stats.massLoss).toBe(1000);
             expect(stats.initialSize).toBe(2000000);
             expect(stats.finalSize).toBe(1999000);
             expect(stats.iceSheetName).toBe('Test Sheet');
-            expect(stats.period).toBe(TimePeriod.WEEKLY);
+            expect(stats.period).toBe(TimePeriod.CENTURY);
         });
     });
 });

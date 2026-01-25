@@ -1,9 +1,13 @@
 package com.icesheet.visualization.model;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Base data for ice sheets with constants
- * Requirements: 3.4
+ * This class is thread-safe as all fields are final and immutable.
+ * Requirements: 3.4, 6.3
  */
+@ThreadSafe
 public class IceSheetBaseData {
     private final double sizeKm2;
     private final double meltingRateKgPerSecond;
@@ -42,10 +46,16 @@ public class IceSheetBaseData {
     
     /**
      * Get base data for a specific ice sheet type
+     * This method is thread-safe as it only accesses immutable constants.
      * @param iceSheetType The ice sheet type
      * @return IceSheetBaseData for the specified type
+     * @throws IllegalArgumentException if iceSheetType is null or unknown
      */
     public static IceSheetBaseData getBaseData(IceSheetType iceSheetType) {
+        if (iceSheetType == null) {
+            throw new IllegalArgumentException("Ice sheet type cannot be null");
+        }
+        
         switch (iceSheetType) {
             case ANTARCTICA:
                 return ANTARCTICA;

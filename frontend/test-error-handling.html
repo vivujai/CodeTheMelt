@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling Test - Ice Sheet Visualization</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/error-notifications.css">
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background: rgba(0, 100, 255, 0.1);
+            border: 2px solid #0066ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-button {
+            background: linear-gradient(45deg, #0066ff, #00ffff);
+            border: 2px solid #00ffff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            box-shadow: 0 0 15px #00ffff;
+            transform: scale(1.05);
+        }
+        
+        .test-results {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .success { color: #00ff88; }
+        .error { color: #ff4444; }
+        .warning { color: #ffaa00; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="neon-text" style="text-align: center; color: #00ffff; margin-bottom: 30px;">
+            Error Handling Test Suite
+        </h1>
+        
+        <div class="test-section">
+            <h3 class="neon-text">Network Error Simulation</h3>
+            <p>Test error handling for various network conditions</p>
+            <button class="test-button" onclick="testNetworkError()">Simulate Network Error</button>
+            <button class="test-button" onclick="testServerError()">Simulate Server Error (500)</button>
+            <button class="test-button" onclick="testNotFoundError()">Simulate Not Found (404)</button>
+            <button class="test-button" onclick="testTimeoutError()">Simulate Timeout</button>
+            <div id="network-results" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3 class="neon-text">Retry Logic Testing</h3>
+            <p>Test retry mechanisms and fallback behavior</p>
+            <button class="test-button" onclick="testRetrySuccess()">Test Retry Success</button>
+            <button class="test-button" onclick="testRetryFailure()">Test Retry Failure</button>
+            <button class="test-button" onclick="testFallbackData()">Test Fallback Data</button>
+            <div id="retry-results" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3 class="neon-text">User Notification Testing</h3>
+            <p>Test user-friendly error messages and notifications</p>
+            <button class="test-button" onclick="testErrorNotification()">Show Error Notification</button>
+            <button class="test-button" onclick="testSuccessNotification()">Show Success Notification</button>
+            <button class="test-button" onclick="testLoadingNotification()">Show Loading Notification</button>
+            <button class="test-button" onclick="testRetryNotification()">Show Retry Notification</button>
+            <button class="test-button" onclick="clearNotifications()">Clear All Notifications</button>
+            <div id="notification-results" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3 class="neon-text">API Integration Testing</h3>
+            <p>Test actual API calls with error handling</p>
+            <button class="test-button" onclick="testDetailStatsAPI()">Test Detail Stats API</button>
+            <button class="test-button" onclick="testVisualizationAPI()">Test Visualization API</button>
+            <button class="test-button" onclick="testInvalidEndpoint()">Test Invalid Endpoint</button>
+            <div id="api-results" class="test-results"></div>
+        </div>
+    </div>
+    
+    <script src="js/models/DataTypes.js"></script>
+    <script src="js/utils/ErrorHandler.js"></script>
+    <script src="js/controllers/NavigationController.js"></script>
+    <script src="js/components/StatisticsDisplay.js"></script>
+    
+    <script>
+        // Test utilities
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : '';
+            container.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Network Error Tests
+        async function testNetworkError() {
+            logResult('network-results', 'Testing network error simulation...', 'info');
+            
+            const mockApiCall = async () => {
+                throw new TypeError('Failed to fetch');
+            };
+            
+            try {
+                await window.errorHandler.executeWithRetry(mockApiCall, {
+                    maxRetries: 1,
+                    operation: 'network error test',
+                    fallbackHandler: () => logResult('network-results', 'Fallback handler executed', 'warning')
+                });
+            } catch (error) {
+                logResult('network-results', `Network error handled: ${error.message}`, 'success');
+            }
+        }
+        
+        async function testServerError() {
+            logResult('network-results', 'Testing server error (500)...', 'info');
+            
+            const mockApiCall = async () => {
+                throw new Error('HTTP error! status: 500');
+            };
+            
+            try {
+                await window.errorHandler.executeWithRetry(mockApiCall, {
+                    maxRetries: 1,
+                    operation: 'server error test',
+                    fallbackHandler: () => logResult('network-results', 'Server error fallback executed', 'warning')
+                });
+            } catch (error) {
+                logResult('network-results', `Server error handled: ${error.message}`, 'success');
+            }
+        }
+        
+        async function testNotFoundError() {
+            logResult('network-results', 'Testing not found error (404)...', 'info');
+            
+            const mockApiCall = async () => {
+                throw new Error('HTTP error! status: 404');
+            };
+            
+            try {
+                await window.errorHandler.executeWithRetry(mockApiCall, {
+                    maxRetries: 1,
+                    operation: 'not found test',
+                    fallbackHandler: () => logResult('network-results', 'Not found fallback executed', 'warning')
+                });
+            } catch (error) {
+                logResult('network-results', `Not found error handled: ${error.message}`, 'success');
+            }
+        }
+        
+        async function testTimeoutError() {
+            logResult('network-results', 'Testing timeout error...', 'info');
+            
+            const mockApiCall = async () => {
+                throw new Error('Request timeout');
+            };
+            
+            try {
+                await window.errorHandler.executeWithRetry(mockApiCall, {
+                    maxRetries: 1,
+                    operation: 'timeout test',
+                    fallbackHandler: () => logResult('network-results', 'Timeout fallback executed', 'warning')
+                });
+            } catch (error) {
+                logResult('network-results', `Timeout error handled: ${error.message}`, 'success');
+            }
+        }
+        
+        // Retry Logic Tests
+        async function testRetrySuccess() {
+            logResult('retry-results', 'Testing retry success (fails twice, succeeds third time)...', 'info');
+            
+            let attempts = 0;
+            const mockApiCall = async () => {
+                attempts++;
+                if (attempts < 3) {
+                    throw new Error('Temporary failure');
+                }
+                return { success: true, attempts };
+            };
+            
+            try {
+                const result = await window.errorHandler.executeWithRetry(mockApiCall, {
+                    maxRetries: 3,
+                    retryDelay: 500,
+                    operation: 'retry success test'
+                });
+                logResult('retry-results', `Success after ${result.attempts} attempts`, 'success');
+            } catch (error) {
+                logResult('retry-results', `Unexpected failure: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testRetryFailure() {
+            logResult('retry-results', 'Testing retry failure (all attempts fail)...', 'info');
+            
+            let attempts = 0;
+            const mockApiCall = async () => {
+                attempts++;
+                throw new Error(`Attempt ${attempts} failed`);
+            };
+            
+            try {
+                await window.errorHandler.executeWithRetry(mockApiCall, {
+                    maxRetries: 2,
+                    retryDelay: 300,
+                    operation: 'retry failure test',
+                    fallbackHandler: () => logResult('retry-results', 'All retries failed, fallback executed', 'warning')
+                });
+            } catch (error) {
+                logResult('retry-results', `All retries failed as expected: ${attempts} attempts made`, 'success');
+            }
+        }
+        
+        async function testFallbackData() {
+            logResult('retry-results', 'Testing fallback data mechanism...', 'info');
+            
+            const mockApiCall = async () => {
+                throw new Error('API unavailable');
+            };
+            
+            const fallbackHandler = () => {
+                logResult('retry-results', 'Using fallback data: Antarctica base data', 'warning');
+                return IceSheetBaseData.ANTARCTICA;
+            };
+            
+            try {
+                await window.errorHandler.executeWithRetry(mockApiCall, {
+                    maxRetries: 1,
+                    operation: 'fallback data test',
+                    fallbackHandler: fallbackHandler
+                });
+            } catch (error) {
+                logResult('retry-results', 'Fallback data test completed', 'success');
+            }
+        }
+        
+        // Notification Tests
+        function testErrorNotification() {
+            logResult('notification-results', 'Showing error notification...', 'info');
+            window.errorHandler.showErrorMessage(
+                'This is a test error message to demonstrate user-friendly error notifications.',
+                'network'
+            );
+            logResult('notification-results', 'Error notification displayed', 'success');
+        }
+        
+        function testSuccessNotification() {
+            logResult('notification-results', 'Showing success notification...', 'info');
+            window.errorHandler.showSuccessMessage('Test operation completed successfully!');
+            logResult('notification-results', 'Success notification displayed', 'success');
+        }
+        
+        function testLoadingNotification() {
+            logResult('notification-results', 'Showing loading notification...', 'info');
+            window.errorHandler.showLoadingMessage('test data');
+            setTimeout(() => {
+                window.errorHandler.clearErrorMessages();
+                logResult('notification-results', 'Loading notification cleared', 'success');
+            }, 3000);
+        }
+        
+        function testRetryNotification() {
+            logResult('notification-results', 'Showing retry notification...', 'info');
+            window.errorHandler.showRetryMessage('test operation', 2, 3, 2000);
+            setTimeout(() => {
+                window.errorHandler.clearErrorMessages();
+                logResult('notification-results', 'Retry notification cleared', 'success');
+            }, 3000);
+        }
+        
+        function clearNotifications() {
+            window.errorHandler.clearErrorMessages();
+            logResult('notification-results', 'All notifications cleared', 'success');
+        }
+        
+        // API Integration Tests
+        async function testDetailStatsAPI() {
+            logResult('api-results', 'Testing detail statistics API with error handling...', 'info');
+            
+            // Create a mock navigation controller for testing
+            const mockNavController = {
+                displayDetailStatistics: (stats) => {
+                    logResult('api-results', `Detail stats received: ${JSON.stringify(stats)}`, 'success');
+                },
+                displayFallbackDetailStatistics: (iceSheet) => {
+                    logResult('api-results', `Using fallback data for ${iceSheet}`, 'warning');
+                }
+            };
+            
+            // Test with a real API call (will likely fail, demonstrating error handling)
+            const apiCall = async () => {
+                const response = await window.errorHandler.fetchWithTimeout(
+                    'http://localhost:8080/api/icesheet/ANTARCTICA/details',
+                    {},
+                    5000
+                );
+                return await response.json();
+            };
+            
+            try {
+                const result = await window.errorHandler.executeWithRetry(apiCall, {
+                    maxRetries: 1,
+                    operation: 'Antarctica detail stats',
+                    fallbackHandler: () => mockNavController.displayFallbackDetailStatistics('ANTARCTICA')
+                });
+                mockNavController.displayDetailStatistics(result);
+            } catch (error) {
+                logResult('api-results', `API test completed with error handling: ${error.message}`, 'success');
+            }
+        }
+        
+        async function testVisualizationAPI() {
+            logResult('api-results', 'Testing visualization API with error handling...', 'info');
+            
+            const apiCall = async () => {
+                const response = await window.errorHandler.fetchWithTimeout(
+                    '/api/icesheet/GREENLAND/visualization?period=ANNUAL',
+                    {},
+                    5000
+                );
+                return await response.json();
+            };
+            
+            try {
+                const result = await window.errorHandler.executeWithRetry(apiCall, {
+                    maxRetries: 1,
+                    operation: 'Greenland visualization data',
+                    fallbackHandler: () => logResult('api-results', 'Using fallback visualization data', 'warning')
+                });
+                logResult('api-results', `Visualization data received: ${JSON.stringify(result)}`, 'success');
+            } catch (error) {
+                logResult('api-results', `Visualization API test completed: ${error.message}`, 'success');
+            }
+        }
+        
+        async function testInvalidEndpoint() {
+            logResult('api-results', 'Testing invalid endpoint...', 'info');
+            
+            const apiCall = async () => {
+                const response = await window.errorHandler.fetchWithTimeout(
+                    '/api/invalid/endpoint',
+                    {},
+                    3000
+                );
+                return await response.json();
+            };
+            
+            try {
+                await window.errorHandler.executeWithRetry(apiCall, {
+                    maxRetries: 1,
+                    operation: 'invalid endpoint test',
+                    fallbackHandler: () => logResult('api-results', 'Invalid endpoint fallback executed', 'warning')
+                });
+            } catch (error) {
+                logResult('api-results', `Invalid endpoint handled correctly: ${error.message}`, 'success');
+            }
+        }
+        
+        // Initialize test page
+        window.addEventListener('load', function() {
+            logResult('network-results', 'Error handling test suite loaded', 'success');
+            logResult('retry-results', 'Retry logic tests ready', 'success');
+            logResult('notification-results', 'Notification tests ready', 'success');
+            logResult('api-results', 'API integration tests ready', 'success');
+        });
+    </script>
+</body>
+</html>

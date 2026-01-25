@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Integration Test</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/error-notifications.css">
+    <style>
+        .test-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #0ff;
+            padding: 10px;
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .test-result {
+            margin: 5px 0;
+            padding: 5px;
+            font-size: 12px;
+            border-left: 3px solid #0ff;
+        }
+        .test-success { border-left-color: #0f0; color: #0f0; }
+        .test-error { border-left-color: #f00; color: #f00; }
+        .test-button {
+            background: #000;
+            color: #0ff;
+            border: 1px solid #0ff;
+            padding: 5px 10px;
+            margin: 2px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .test-button:hover { background: #0ff; color: #000; }
+    </style>
+</head>
+<body>
+    <!-- Test Panel -->
+    <div class="test-panel">
+        <h4 style="color: #0ff; margin: 0 0 10px 0;">Integration Test</h4>
+        <button class="test-button" onclick="testNavigation()">Test Navigation</button>
+        <button class="test-button" onclick="testDetailPage()">Test Detail Page</button>
+        <button class="test-button" onclick="testVisualizationPage()">Test Visualization</button>
+        <button class="test-button" onclick="clearResults()">Clear</button>
+        <div id="test-results"></div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app">
+        <!-- Title Page -->
+        <div id="title-page" class="page">
+            <div class="title-container">
+                <h1 class="main-title neon-text">Ice Sheet Visualization System</h1>
+                <div class="navigation-buttons">
+                    <button id="greenland-btn" class="nav-button neon-text" onclick="selectIceSheet('GREENLAND')">
+                        Greenland
+                    </button>
+                    <button id="antarctica-btn" class="nav-button neon-text" onclick="selectIceSheet('ANTARCTICA')">
+                        Antarctica
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detail Page Template -->
+        <div id="detail-page" class="page hidden">
+            <div class="detail-container">
+                <div class="page-header">
+                    <button id="detail-menu-btn" class="menu-button nav-button neon-text" onclick="goToMenu()">Menu</button>
+                    <h2 id="detail-title" class="page-title neon-text"></h2>
+                </div>
+                <div id="detail-stats" class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Current Size:</span>
+                        <span id="current-size" class="stat-value">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Ambient Temperature:</span>
+                        <span id="ambient-temperature" class="stat-value">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Melting Rate:</span>
+                        <span id="melting-rate" class="stat-value">Loading...</span>
+                    </div>
+                </div>
+                <div class="time-period-buttons">
+                    <button id="century-btn" class="nav-button neon-text" onclick="selectTimePeriod('CENTURY')">Century</button>
+                    <button id="decade-btn" class="nav-button neon-text" onclick="selectTimePeriod('DECADE')">Decade</button>
+                    <button id="annual-btn" class="nav-button neon-text" onclick="selectTimePeriod('ANNUAL')">Annual</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Visualization Page Template -->
+        <div id="visualization-page" class="page hidden">
+            <div class="visualization-container">
+                <div class="top-bar">
+                    <h3 id="viz-ice-sheet-name" class="ice-sheet-name neon-text"></h3>
+                    <button id="exit-btn" class="exit-button nav-button neon-text" onclick="exitVisualization()">Exit</button>
+                </div>
+                <div class="main-content">
+                    <div class="visualization-controls">
+                        <h4 class="controls-title neon-text">Visualization Modes</h4>
+                        <button id="side-view-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('SIDE_VIEW')">Side View</button>
+                        <button id="size-graph-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('SIZE_GRAPH')">Size Graph</button>
+                        <button id="layer-overlay-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('LAYER_OVERLAY')">Layer Overlay</button>
+                    </div>
+                    <div id="visualization-display" class="visualization-area">
+                        <div class="visualization-placeholder neon-text">
+                            Select a visualization mode above
+                        </div>
+                    </div>
+                    <div id="visualization-stats" class="stats-panel">
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Melting Rate:</span>
+                            <span id="viz-melting-rate" class="stat-value neon-text">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Mass Loss:</span>
+                            <span id="viz-mass-loss" class="stat-value neon-text">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Initial Size:</span>
+                            <span id="viz-initial-size" class="stat-value neon-text">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/models/DataTypes.js"></script>
+    <script src="js/utils/ErrorHandler.js"></script>
+    <script src="js/controllers/NavigationController.js"></script>
+    <script src="js/components/StatisticsDisplay.js"></script>
+    <script src="js/components/VisualizationEngine.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Global navigation functions for HTML onclick handlers
+        function selectIceSheet(iceSheetType) {
+            logTest(`Selecting ice sheet: ${iceSheetType}`);
+            if (navigationController) {
+                navigationController.navigateToDetailPage(iceSheetType);
+            }
+        }
+        
+        function selectTimePeriod(periodType) {
+            logTest(`Selecting time period: ${periodType}`);
+            if (navigationController && navigationController.currentIceSheet) {
+                const period = TimePeriod[periodType];
+                navigationController.navigateToVisualizationPage(navigationController.currentIceSheet, period);
+            }
+        }
+        
+        function exitVisualization() {
+            logTest('Exiting visualization');
+            if (navigationController) {
+                navigationController.exitToDetailPage();
+            }
+        }
+        
+        function goToMenu() {
+            logTest('Going to menu');
+            if (navigationController) {
+                navigationController.navigateToTitlePage();
+            }
+        }
+        
+        function selectVisualizationMode(modeType) {
+            logTest(`Selecting visualization mode: ${modeType}`);
+            if (visualizationEngine) {
+                visualizationEngine.updateDisplay(VisualizationType[modeType]);
+            }
+        }
+        
+        // Test functions
+        const testResults = document.getElementById('test-results');
+        
+        function logTest(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = `test-result ${isSuccess ? 'test-success' : 'test-error'}`;
+            div.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            testResults.appendChild(div);
+            testResults.scrollTop = testResults.scrollHeight;
+        }
+        
+        function clearResults() {
+            testResults.innerHTML = '';
+        }
+        
+        async function testNavigation() {
+            try {
+                logTest('Testing navigation system...');
+                
+                // Test title page
+                navigationController.navigateToTitlePage();
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                if (document.getElementById('title-page').classList.contains('hidden')) {
+                    throw new Error('Title page not visible');
+                }
+                logTest('✓ Title page navigation works');
+                
+                // Test detail page navigation
+                navigationController.navigateToDetailPage('GREENLAND');
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                if (document.getElementById('detail-page').classList.contains('hidden')) {
+                    throw new Error('Detail page not visible');
+                }
+                logTest('✓ Detail page navigation works');
+                
+                // Test visualization page navigation
+                navigationController.navigateToVisualizationPage('GREENLAND', TimePeriod.ANNUAL);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                if (document.getElementById('visualization-page').classList.contains('hidden')) {
+                    throw new Error('Visualization page not visible');
+                }
+                logTest('✓ Visualization page navigation works');
+                
+                logTest('✓ All navigation tests passed');
+                
+            } catch (error) {
+                logTest(`✗ Navigation test failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testDetailPage() {
+            try {
+                logTest('Testing detail page API integration...');
+                
+                // Navigate to detail page
+                navigationController.navigateToDetailPage('GREENLAND');
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for API call
+                
+                // Check if data loaded
+                const sizeElement = document.getElementById('current-size');
+                const tempElement = document.getElementById('ambient-temperature');
+                const rateElement = document.getElementById('melting-rate');
+                
+                if (sizeElement.textContent === 'Loading...' || 
+                    tempElement.textContent === 'Loading...' || 
+                    rateElement.textContent === 'Loading...') {
+                    throw new Error('Detail statistics not loaded from API');
+                }
+                
+                logTest(`✓ Detail stats loaded: Size=${sizeElement.textContent}, Temp=${tempElement.textContent}, Rate=${rateElement.textContent}`);
+                
+                // Test Antarctica too
+                navigationController.navigateToDetailPage('ANTARCTICA');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                if (sizeElement.textContent.includes('14,000,000')) {
+                    logTest('✓ Antarctica detail stats loaded correctly');
+                } else {
+                    throw new Error('Antarctica stats not loaded correctly');
+                }
+                
+            } catch (error) {
+                logTest(`✗ Detail page test failed: ${error.message}`, false);
+            }
+        }
+        
+        async function testVisualizationPage() {
+            try {
+                logTest('Testing visualization page integration...');
+                
+                // Navigate to visualization page
+                navigationController.navigateToVisualizationPage('GREENLAND', TimePeriod.ANNUAL);
+                await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for API call
+                
+                // Check if visualization stats loaded
+                const meltingRateElement = document.getElementById('viz-melting-rate');
+                const massLossElement = document.getElementById('viz-mass-loss');
+                const initialSizeElement = document.getElementById('viz-initial-size');
+                
+                if (meltingRateElement.textContent === 'Loading...' || 
+                    massLossElement.textContent === 'Loading...' || 
+                    initialSizeElement.textContent === 'Loading...') {
+                    throw new Error('Visualization statistics not loaded from API');
+                }
+                
+                logTest(`✓ Visualization stats loaded: Rate=${meltingRateElement.textContent}, Loss=${massLossElement.textContent}, Size=${initialSizeElement.textContent}`);
+                
+                // Test visualization modes
+                visualizationEngine.updateDisplay(VisualizationType.SIDE_VIEW);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const displayArea = document.getElementById('visualization-display');
+                if (displayArea.innerHTML.includes('side-view-container')) {
+                    logTest('✓ Side view visualization renders');
+                } else {
+                    throw new Error('Side view not rendering');
+                }
+                
+                visualizationEngine.updateDisplay(VisualizationType.SIZE_GRAPH);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                if (displayArea.innerHTML.includes('size-graph-container')) {
+                    logTest('✓ Size graph visualization renders');
+                } else {
+                    throw new Error('Size graph not rendering');
+                }
+                
+                visualizationEngine.updateDisplay(VisualizationType.LAYER_OVERLAY);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                if (displayArea.innerHTML.includes('layer-overlay-container')) {
+                    logTest('✓ Layer overlay visualization renders');
+                } else {
+                    throw new Error('Layer overlay not rendering');
+                }
+                
+                logTest('✓ All visualization tests passed');
+                
+            } catch (error) {
+                logTest(`✗ Visualization test failed: ${error.message}`, false);
+            }
+        }
+        
+        // Auto-start basic tests
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                logTest('Integration test ready. Click buttons to test specific features.');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+</content>
+</invoke>
