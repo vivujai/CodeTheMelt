@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greenland Ice Sheet - Annual View</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <div id="visualization-page" class="page">
+            <div class="visualization-container">
+                <div class="top-bar">
+                    <h3 id="viz-ice-sheet-name" class="ice-sheet-name neon-text">Greenland</h3>
+                    <button id="exit-btn" class="exit-button nav-button neon-text" onclick="window.location.href='index.html'">Exit</button>
+                </div>
+                <div class="main-content">
+                    <div class="visualization-controls">
+                        <h4 class="controls-title neon-text">Visualization Modes</h4>
+                        <button id="side-view-btn" class="viz-mode-button nav-button neon-text active" onclick="selectVisualizationMode('SIDE_VIEW')">Side View</button>
+                        <button id="size-graph-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('SIZE_GRAPH')">Size Graph</button>
+                        <button id="layer-overlay-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('LAYER_OVERLAY')">Layer Overlay</button>
+                    </div>
+                    <div id="visualization-display" class="visualization-area"></div>
+                    <div id="visualization-stats" class="stats-panel">
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Melting Rate:</span>
+                            <span id="viz-melting-rate" class="stat-value neon-text">-4.364067 kg/s</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Mass Loss:</span>
+                            <span id="viz-mass-loss" class="stat-value neon-text">137,685,100 kg</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Initial Size:</span>
+                            <span id="viz-initial-size" class="stat-value neon-text">4,380,000 km²</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="visualization-engine.js"></script>
+    <script>
+        const data = {
+            meltingRate: -4.364067,
+            massLoss: -137685100,
+            initialSize: 4380000,
+            finalSize: 4380000,
+            iceSheetName: 'Greenland',
+            period: {
+                name: 'ANNUAL',
+                seconds: 31536000,
+                displayName: 'Annual'
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateVisualizationDisplay(VisualizationType.SIDE_VIEW);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ice Sheet Visualization System</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Title Page -->
+        <div id="title-page" class="page">
+            <div class="title-container">
+                <h1 class="main-title neon-text">Ice Sheet Visualization System</h1>
+                <div class="navigation-buttons">
+                    <button id="greenland-btn" class="nav-button neon-text" onclick="selectIceSheet('GREENLAND')">
+                        Greenland
+                    </button>
+                    <button id="antarctica-btn" class="nav-button neon-text" onclick="selectIceSheet('ANTARCTICA')">
+                        Antarctica
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detail Page Template -->
+        <div id="detail-page" class="page hidden">
+            <div class="detail-container">
+                <div class="page-header">
+                    <button id="detail-menu-btn" class="menu-button nav-button neon-text" onclick="goToMenu()">Menu</button>
+                    <h2 id="detail-title" class="page-title neon-text"></h2>
+                </div>
+                <div id="detail-stats" class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Current Size:</span>
+                        <span id="current-size" class="stat-value">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Ambient Temperature:</span>
+                        <span id="ambient-temperature" class="stat-value">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label neon-text">Melting Rate:</span>
+                        <span id="melting-rate" class="stat-value">Loading...</span>
+                    </div>
+                </div>
+                <div class="time-period-buttons">
+                    <button id="century-btn" class="nav-button neon-text" onclick="selectTimePeriod('CENTURY')">Century</button>
+                    <button id="decade-btn" class="nav-button neon-text" onclick="selectTimePeriod('DECADE')">Decade</button>
+                    <button id="annual-btn" class="nav-button neon-text" onclick="selectTimePeriod('ANNUAL')">Annual</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Visualization Page Template -->
+        <div id="visualization-page" class="page hidden">
+            <div class="visualization-container">
+                <div class="top-bar">
+                    <h3 id="viz-ice-sheet-name" class="ice-sheet-name neon-text"></h3>
+                    <button id="exit-btn" class="exit-button nav-button neon-text" onclick="exitVisualization()">Exit</button>
+                </div>
+                <div class="main-content">
+                    <div class="visualization-controls">
+                        <h4 class="controls-title neon-text">Visualization Modes</h4>
+                        <button id="side-view-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('SIDE_VIEW')">Side View</button>
+                        <button id="size-graph-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('SIZE_GRAPH')">Size Graph</button>
+                        <button id="layer-overlay-btn" class="viz-mode-button nav-button neon-text" onclick="selectVisualizationMode('LAYER_OVERLAY')">Layer Overlay</button>
+                    </div>
+                    <div id="visualization-display" class="visualization-area">
+                        <div class="visualization-placeholder neon-text">
+                            Select a visualization mode above
+                        </div>
+                    </div>
+                    <div id="visualization-stats" class="stats-panel">
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Melting Rate:</span>
+                            <span id="viz-melting-rate" class="stat-value neon-text">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Mass Loss:</span>
+                            <span id="viz-mass-loss" class="stat-value neon-text">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label neon-text">Initial Size:</span>
+                            <span id="viz-initial-size" class="stat-value neon-text">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Embedded data - no API calls needed
+        const IceSheetType = {
+            GREENLAND: 'GREENLAND',
+            ANTARCTICA: 'ANTARCTICA'
+        };
+
+        const TimePeriod = {
+            CENTURY: {
+                name: 'CENTURY',
+                seconds: 3153600000,
+                displayName: 'Century'
+            },
+            DECADE: {
+                name: 'DECADE', 
+                seconds: 315360000,
+                displayName: 'Decade'
+            },
+            ANNUAL: {
+                name: 'ANNUAL',
+                seconds: 31536000,
+                displayName: 'Annual'
+            }
+        };
+
+        const VisualizationType = {
+            SIDE_VIEW: 'SIDE_VIEW',
+            SIZE_GRAPH: 'SIZE_GRAPH', 
+            LAYER_OVERLAY: 'LAYER_OVERLAY'
+        };
+
+        const IceSheetBaseData = {
+            [IceSheetType.ANTARCTICA]: {
+                sizeKm2: 14000000,
+                meltingRateKgPerSecond: -26.9982036,
+                ambientTemperature: -57.0,
+                name: 'Antarctica'
+            },
+            [IceSheetType.GREENLAND]: {
+                sizeKm2: 4380000,
+                meltingRateKgPerSecond: -4.364067,
+                ambientTemperature: -29.45,
+                name: 'Greenland'
+            }
+        };
+        // Application state
+        let currentPage = 'title';
+        let currentIceSheet = null;
+        let currentPeriod = null;
+        let currentVisualizationType = null;
+        let currentData = null;
+
+        // Navigation functions
+        function selectIceSheet(iceSheetType) {
+            navigateToDetailPage(iceSheetType);
+        }
+        
+        function selectTimePeriod(periodType) {
+            if (currentIceSheet) {
+                const period = TimePeriod[periodType];
+                navigateToVisualizationPage(currentIceSheet, period);
+            }
+        }
+        
+        function exitVisualization() {
+            if (currentIceSheet) {
+                navigateToDetailPage(currentIceSheet);
+            } else {
+                navigateToTitlePage();
+            }
+        }
+        
+        function goToMenu() {
+            navigateToTitlePage();
+        }
+        
+        function selectVisualizationMode(modeType) {
+            updateVisualizationDisplay(VisualizationType[modeType]);
+        }
+
+        // Page navigation
+        function navigateToTitlePage() {
+            currentPage = 'title';
+            currentIceSheet = null;
+            currentPeriod = null;
+            showPage('title-page');
+        }
+
+        function navigateToDetailPage(iceSheet) {
+            currentPage = 'detail';
+            currentIceSheet = iceSheet;
+            currentPeriod = null;
+            
+            showPage('detail-page');
+            
+            // Update detail page content
+            const titleElement = document.getElementById('detail-title');
+            if (titleElement) {
+                const iceSheetData = IceSheetBaseData[iceSheet];
+                titleElement.textContent = iceSheetData ? iceSheetData.name : iceSheet;
+            }
+            
+            // Load detail statistics
+            loadDetailStatistics(iceSheet);
+        }
+
+        function navigateToVisualizationPage(iceSheet, period) {
+            currentPage = 'visualization';
+            currentIceSheet = iceSheet;
+            currentPeriod = period;
+            
+            showPage('visualization-page');
+            
+            // Update visualization page content
+            const nameElement = document.getElementById('viz-ice-sheet-name');
+            if (nameElement) {
+                const iceSheetData = IceSheetBaseData[iceSheet];
+                nameElement.textContent = iceSheetData ? iceSheetData.name : iceSheet;
+            }
+            
+            // Load visualization statistics
+            loadVisualizationStatistics(iceSheet, period);
+        }
+
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = ['title-page', 'detail-page', 'visualization-page'];
+            pages.forEach(id => {
+                const page = document.getElementById(id);
+                if (page) page.classList.add('hidden');
+            });
+            
+            // Show selected page
+            const selectedPage = document.getElementById(pageId);
+            if (selectedPage) selectedPage.classList.remove('hidden');
+        }
+        // Data loading functions
+        function loadDetailStatistics(iceSheet) {
+            const data = IceSheetBaseData[iceSheet];
+            if (!data) return;
+            
+            document.getElementById('current-size').textContent = `${data.sizeKm2.toLocaleString()} km²`;
+            document.getElementById('ambient-temperature').textContent = `${data.ambientTemperature}°C`;
+            document.getElementById('melting-rate').textContent = `${data.meltingRateKgPerSecond} kg/s`;
+        }
+
+        function loadVisualizationStatistics(iceSheet, period) {
+            const data = IceSheetBaseData[iceSheet];
+            if (!data) return;
+            
+            const meltingRate = data.meltingRateKgPerSecond;
+            const massLoss = Math.abs(meltingRate * period.seconds);
+            const initialSize = data.sizeKm2;
+            
+            currentData = {
+                meltingRate: meltingRate,
+                massLoss: -massLoss,
+                initialSize: initialSize,
+                finalSize: initialSize,
+                iceSheetName: data.name,
+                period: period
+            };
+            
+            document.getElementById('viz-melting-rate').textContent = `${meltingRate.toLocaleString()} kg/s`;
+            document.getElementById('viz-mass-loss').textContent = `${massLoss.toLocaleString()} kg`;
+            document.getElementById('viz-initial-size').textContent = `${initialSize.toLocaleString()} km²`;
+            
+            // Initialize with side view
+            updateVisualizationDisplay(VisualizationType.SIDE_VIEW);
+        }
+
+        // Visualization functions
+        function updateVisualizationDisplay(visualizationType) {
+            if (!currentData) return;
+            
+            currentVisualizationType = visualizationType;
+            updateActiveButton(visualizationType);
+
+            switch (visualizationType) {
+                case VisualizationType.SIDE_VIEW:
+                    renderSideView(currentData);
+                    break;
+                case VisualizationType.SIZE_GRAPH:
+                    renderSizeGraph(currentData);
+                    break;
+                case VisualizationType.LAYER_OVERLAY:
+                    renderLayerOverlay(currentData);
+                    break;
+            }
+        }
+
+        function updateActiveButton(visualizationType) {
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.viz-mode-button');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // Add active class to current button
+            let activeButtonId;
+            switch (visualizationType) {
+                case VisualizationType.SIDE_VIEW:
+                    activeButtonId = 'side-view-btn';
+                    break;
+                case VisualizationType.SIZE_GRAPH:
+                    activeButtonId = 'size-graph-btn';
+                    break;
+                case VisualizationType.LAYER_OVERLAY:
+                    activeButtonId = 'layer-overlay-btn';
+                    break;
+            }
+
+            if (activeButtonId) {
+                const activeButton = document.getElementById(activeButtonId);
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+            }
+        }
+        function calculateRealisticLossPercentage(data) {
+            const meltingRateKgPerSecond = Math.abs(data.meltingRate);
+            const periodSeconds = data.period.seconds;
+            
+            let basePercentage;
+            if (data.iceSheetName === 'Antarctica') {
+                basePercentage = (meltingRateKgPerSecond / 500000) * (periodSeconds / 31536000) * 100;
+            } else {
+                basePercentage = (meltingRateKgPerSecond / 50000) * (periodSeconds / 31536000) * 100;
+            }
+            
+            if (data.period.name === 'CENTURY') {
+                basePercentage *= 2.5;
+            } else if (data.period.name === 'DECADE') {
+                basePercentage *= 1.5;
+            }
+            
+            return Math.max(0.1, Math.min(25, basePercentage));
+        }
+
+        function renderSideView(data) {
+            const displayArea = document.getElementById('visualization-display');
+            if (!displayArea) return;
+            
+            const baseMassLossPercentage = calculateRealisticLossPercentage(data);
+            const exaggeratedMassLossPercentage = Math.min(baseMassLossPercentage * 5, 75);
+            const remainingPercentage = 100 - exaggeratedMassLossPercentage;
+            
+            const totalHeight = 220;
+            const seaLevelHeight = 20;
+            const bedrockHeight = 25;
+            const subglacialHeight = 12;
+            const iceHeight = totalHeight - seaLevelHeight - bedrockHeight - subglacialHeight;
+            const currentIceHeight = (remainingPercentage / 100) * iceHeight;
+            const meltedHeight = Math.max(10, iceHeight - currentIceHeight);
+            
+            const totalIceLayerHeight = currentIceHeight + meltedHeight;
+            const surfaceLayerHeight = Math.max(8, totalIceLayerHeight * 0.05);
+            const thinningZoneHeight = meltedHeight;
+            const firnLayerHeight = Math.max(12, totalIceLayerHeight * 0.12);
+            const glacialIceHeight = Math.max(15, totalIceLayerHeight * 0.55);
+            const basalIceHeight = Math.max(10, totalIceLayerHeight * 0.05);
+            
+            displayArea.innerHTML = `
+                <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h4 style="font-size: 1.5rem; margin-bottom: 10px; color: #00ffff;">Geological Cross-Section - ${data.iceSheetName}</h4>
+                        <p style="font-size: 0.9rem; color: #cccccc; margin-bottom: 10px; font-style: italic;">Cross Section Representation</p>
+                        <p style="font-size: 0.8rem; color: #ff6666; margin-bottom: 20px; font-weight: bold; background: rgba(255, 102, 102, 0.1); padding: 5px 10px; border-radius: 5px; border: 1px solid rgba(255, 102, 102, 0.3);">⚠️ Thinning zone height exaggerated 5x for visualization clarity</p>
+                    </div>
+                    <div style="display: flex; gap: 40px; align-items: flex-start; width: 95%; max-width: 800px;">
+                        <div style="flex: 0 0 auto; width: 400px; display: flex; flex-direction: column; gap: 15px;">
+                            <div style="width: 100%;">
+                                <div style="position: relative; background: transparent; border: 2px solid #0066ff; border-radius: 10px; margin-bottom: 25px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 15px rgba(0, 102, 255, 0.3); gap: 0; line-height: 0; height: ${totalHeight}px;">
+                                    <div style="background: linear-gradient(to bottom, #ffffff, #f0f8ff); position: relative; display: block; align-items: center; justify-content: center; border-radius: 8px 8px 0 0; overflow: hidden; margin: 0; padding: 0; line-height: normal; height: ${surfaceLayerHeight}px;">
+                                        <span style="font-size: 0.8rem; font-weight: bold; text-shadow: 0 0 8px rgba(0, 0, 0, 0.9); z-index: 2; position: absolute; color: #ffffff; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">Surface Snow 2%</span>
+                                    </div>
+                                    <div style="background: linear-gradient(45deg, #ff6666, #ff4444); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; border-top: 2px dashed #ff8888; border-bottom: 2px dashed #ff8888; margin: 0; padding: 0; height: ${thinningZoneHeight}px;">
+                                        <div style="display: flex; flex-direction: column; align-items: center; z-index: 3; position: relative;">
+                                            <span style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; background: rgba(0, 0, 0, 0.6); padding: 2px 8px; border-radius: 3px;">Surface Thinning Zone ${baseMassLossPercentage.toFixed(2)}% Lost</span>
+                                            <div style="display: flex; gap: 10px;">
+                                                <div style="font-size: 1.2rem; color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);">↓</div>
+                                                <div style="font-size: 1.2rem; color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);">↓</div>
+                                                <div style="font-size: 1.2rem; color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);">↓</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="background: linear-gradient(to bottom, #e6f3ff, #ccddff); position: relative; display: block; align-items: center; justify-content: center; overflow: hidden; margin: 0; padding: 0; line-height: normal; height: ${firnLayerHeight}px;">
+                                        <span style="font-size: 0.8rem; font-weight: bold; text-shadow: 0 0 8px rgba(0, 0, 0, 0.9); z-index: 2; position: absolute; color: #ffffff; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">Firn Layer ${(5 - baseMassLossPercentage).toFixed(1)}%</span>
+                                    </div>
+                                    <div style="background: linear-gradient(to bottom, #00aaff, #0066ff); position: relative; display: block; align-items: center; justify-content: center; overflow: hidden; margin: 0; padding: 0; line-height: normal; height: ${glacialIceHeight}px;">
+                                        <span style="font-size: 0.8rem; font-weight: bold; text-shadow: 0 0 8px rgba(0, 0, 0, 0.9); z-index: 2; position: absolute; color: #ffffff; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">Glacial Ice 92%</span>
+                                    </div>
+                                    <div style="background: linear-gradient(to bottom, #004499, #003366); position: relative; display: block; align-items: center; justify-content: center; overflow: hidden; margin: 0; padding: 0; line-height: normal; border-bottom: none; height: ${basalIceHeight}px;">
+                                        <span style="font-size: 0.8rem; font-weight: bold; text-shadow: 0 0 8px rgba(0, 0, 0, 0.9); z-index: 2; position: absolute; color: #ffffff; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">Basal Ice 1%</span>
+                                    </div>
+                                    <div style="background: linear-gradient(45deg, #2d4a22, #3d5a32); display: block; align-items: center; justify-content: center; position: relative; overflow: hidden; margin: 0; padding: 0; line-height: normal; border-top: none; height: ${subglacialHeight}px;">
+                                        <span style="font-size: 0.8rem; font-weight: bold; text-shadow: 0 0 8px rgba(0, 0, 0, 0.9); z-index: 2; position: absolute; color: #ffffff; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">Subglacial Zone</span>
+                                    </div>
+                                    <div style="background: linear-gradient(45deg, #004466, #0066aa); display: flex; align-items: center; justify-content: center; border-top: 2px solid #00aaff; border-bottom: 1px solid #0088cc; position: relative; overflow: hidden; margin: 0; padding: 0; height: ${seaLevelHeight}px;">
+                                        <span style="font-size: 0.8rem; color: #00aaff; font-weight: bold; z-index: 2; position: relative;">Sea Level</span>
+                                    </div>
+                                    <div style="background: linear-gradient(45deg, #666666, #888888); display: flex; align-items: center; justify-content: center; border-radius: 0 0 8px 8px; position: relative; overflow: hidden; margin: 0; padding: 0; height: ${bedrockHeight}px;">
+                                        <span style="font-size: 0.8rem; font-weight: bold; color: #cccccc; z-index: 2; position: relative;">Bedrock</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; text-align: left; font-size: 0.95rem; line-height: 1.5; min-width: 300px;">
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px;">
+                                <div style="padding: 10px; background: rgba(0, 102, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                                    <h5 style="color: #00ffff; margin-bottom: 8px; font-size: 1rem; border-bottom: 1px solid rgba(0, 255, 255, 0.3); padding-bottom: 4px;">Ice Structure</h5>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Surface: Fresh snow accumulation</p>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Thinning: Surface melting zone</p>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Firn: Compressed granular snow</p>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Glacial: Dense crystalline ice</p>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Basal: Ice-bedrock interface</p>
+                                </div>
+                                <div style="padding: 10px; background: rgba(0, 102, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                                    <h5 style="color: #00ffff; margin-bottom: 8px; font-size: 1rem; border-bottom: 1px solid rgba(0, 255, 255, 0.3); padding-bottom: 4px;">Thinning Analysis</h5>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Remaining thickness: ${remainingPercentage.toFixed(1)}%</p>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Actual thickness loss: ${baseMassLossPercentage.toFixed(2)}%</p>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Time period: ${data.period.displayName.toLowerCase()}</p>
+                                    <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Mass loss rate: ${data.meltingRate.toFixed(2)} kg/s</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        function renderSizeGraph(data) {
+            const displayArea = document.getElementById('visualization-display');
+            if (!displayArea) return;
+            
+            const massLossPercentage = calculateRealisticLossPercentage(data);
+            const remainingPercentage = 100 - massLossPercentage;
+            
+            const baseMaxHeight = 140;
+            const scaleFactor = massLossPercentage < 1 ? 3 : 1;
+            const adjustedLossPercentage = Math.min(massLossPercentage * scaleFactor, 25);
+            
+            const surfaceSnowPercentage = 2;
+            const firnLayerPercentage = Math.max(0.1, 5 - massLossPercentage);
+            const glacialIcePercentage = 92;
+            const basalIcePercentage = 1;
+            
+            const initialHeight = baseMaxHeight;
+            const surfaceSnowHeight = Math.max(15, (surfaceSnowPercentage / 100) * baseMaxHeight);
+            const firnLayerHeight = Math.max(15, (firnLayerPercentage / 100) * baseMaxHeight);
+            const glacialIceHeight = Math.max(30, (glacialIcePercentage / 100) * baseMaxHeight);
+            const basalIceHeight = Math.max(10, (basalIcePercentage / 100) * baseMaxHeight);
+            const lossHeight = Math.max(20, (adjustedLossPercentage / 100) * baseMaxHeight);
+            
+            displayArea.innerHTML = `
+                <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h4 style="font-size: 1.5rem; color: #00ffff;">Size Comparison - ${data.iceSheetName}</h4>
+                    </div>
+                    <div style="width: 95%; max-width: 900px;">
+                        <div style="display: flex; justify-content: space-around; align-items: flex-end; height: 260px; margin-bottom: 20px; padding: 20px; background: rgba(0, 0, 0, 0.3); border: 2px solid #0066ff; border-radius: 10px; box-sizing: border-box;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div style="width: 50px; display: flex; align-items: flex-end; justify-content: center; border-radius: 8px 8px 0 0; position: relative; min-height: 20px; height: ${initialHeight}px; background: linear-gradient(to top, #0066ff, #00ffff);">
+                                    <span style="position: absolute; bottom: 5px; font-size: 0.7rem; font-weight: bold; text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);">100%</span>
+                                </div>
+                                <div style="font-size: 0.8rem; text-align: center; color: #00ffff; margin-bottom: 5px;">Initial Size</div>
+                                <div style="font-size: 0.7rem; text-align: center; color: #ffffff;">${data.initialSize.toLocaleString()} km²</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div style="width: 50px; display: flex; align-items: flex-end; justify-content: center; border-radius: 8px 8px 0 0; position: relative; min-height: 20px; height: ${surfaceSnowHeight}px; background: linear-gradient(to top, #ffffff, #f0f8ff);">
+                                    <span style="position: absolute; bottom: 5px; font-size: 0.7rem; font-weight: bold; text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);">${surfaceSnowPercentage}%</span>
+                                </div>
+                                <div style="font-size: 0.8rem; text-align: center; color: #00ffff; margin-bottom: 5px;">Surface Snow</div>
+                                <div style="font-size: 0.7rem; text-align: center; color: #ffffff;">${(data.initialSize * surfaceSnowPercentage / 100).toLocaleString()} km²</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div style="width: 50px; display: flex; align-items: flex-end; justify-content: center; border-radius: 8px 8px 0 0; position: relative; min-height: 20px; height: ${firnLayerHeight}px; background: linear-gradient(to top, #e6f3ff, #ccddff);">
+                                    <span style="position: absolute; bottom: 5px; font-size: 0.7rem; font-weight: bold; text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);">${firnLayerPercentage.toFixed(1)}%</span>
+                                </div>
+                                <div style="font-size: 0.8rem; text-align: center; color: #00ffff; margin-bottom: 5px;">Firn Layer</div>
+                                <div style="font-size: 0.7rem; text-align: center; color: #ffffff;">${(data.initialSize * firnLayerPercentage / 100).toLocaleString()} km²</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div style="width: 50px; display: flex; align-items: flex-end; justify-content: center; border-radius: 8px 8px 0 0; position: relative; min-height: 20px; height: ${glacialIceHeight}px; background: linear-gradient(to top, #00aaff, #0066ff);">
+                                    <span style="position: absolute; bottom: 5px; font-size: 0.7rem; font-weight: bold; text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);">${glacialIcePercentage}%</span>
+                                </div>
+                                <div style="font-size: 0.8rem; text-align: center; color: #00ffff; margin-bottom: 5px;">Glacial Ice</div>
+                                <div style="font-size: 0.7rem; text-align: center; color: #ffffff;">${(data.initialSize * glacialIcePercentage / 100).toLocaleString()} km²</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div style="width: 50px; display: flex; align-items: flex-end; justify-content: center; border-radius: 8px 8px 0 0; position: relative; min-height: 20px; height: ${basalIceHeight}px; background: linear-gradient(to top, #004499, #003366);">
+                                    <span style="position: absolute; bottom: 5px; font-size: 0.7rem; font-weight: bold; text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);">${basalIcePercentage}%</span>
+                                </div>
+                                <div style="font-size: 0.8rem; text-align: center; color: #00ffff; margin-bottom: 5px;">Basal Ice</div>
+                                <div style="font-size: 0.7rem; text-align: center; color: #ffffff;">${(data.initialSize * basalIcePercentage / 100).toLocaleString()} km²</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div style="width: 50px; display: flex; align-items: flex-end; justify-content: center; border-radius: 8px 8px 0 0; position: relative; min-height: 20px; height: ${lossHeight}px; background: linear-gradient(to top, #ff4444, #ff6666);">
+                                    <span style="position: absolute; bottom: 5px; font-size: 0.7rem; font-weight: bold; text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);">${massLossPercentage.toFixed(2)}%</span>
+                                </div>
+                                <div style="font-size: 0.8rem; text-align: center; color: #00ffff; margin-bottom: 5px;">Area Affected${scaleFactor > 1 ? ' (Enhanced)' : ''}</div>
+                                <div style="font-size: 0.7rem; text-align: center; color: #ffffff;">${(data.initialSize * massLossPercentage / 100).toLocaleString()} km²</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; font-size: 0.9rem; line-height: 1.5; color: white;">
+                            <p style="margin-bottom: 8px;">Ice sheet layer composition and impact visualization</p>
+                            <p style="margin-bottom: 8px;">Shows layer breakdown over ${data.period.displayName.toLowerCase()} period</p>
+                            <p style="margin-bottom: 8px;">Mass loss: ${Math.abs(data.massLoss).toLocaleString()} kg affects ${massLossPercentage.toFixed(2)}% of area</p>
+                            ${scaleFactor > 1 ? '<p style="color: #ffaa00; font-size: 0.8rem; margin-bottom: 8px;">⚠️ Small percentages enhanced for visibility</p>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        function renderLayerOverlay(data) {
+            const displayArea = document.getElementById('visualization-display');
+            if (!displayArea) return;
+            
+            const massLossPercentage = calculateRealisticLossPercentage(data);
+            const remainingPercentage = 100 - massLossPercentage;
+            const isAntarctica = data.iceSheetName === 'Antarctica';
+            
+            if (isAntarctica) {
+                displayArea.innerHTML = `
+                    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+                        <div style="text-align: center; margin-bottom: 25px;">
+                            <h4 style="font-size: 1.5rem; margin-bottom: 10px; color: #00ffff;">Impact Overlay - ${data.iceSheetName}</h4>
+                            <p style="font-size: 0.9rem; color: #cccccc; margin-bottom: 25px; font-style: italic;">Simplified Impact Visualization From Space.Com</p>
+                        </div>
+                        <div style="width: 95%; max-width: 1000px; display: flex; gap: 30px; align-items: flex-start;">
+                            <div style="display: flex; gap: 40px; align-items: flex-start; width: 100%;">
+                                <div style="flex: 0 0 220px; display: flex; flex-direction: column; gap: 20px; align-items: center;">
+                                    <div style="margin-top: 15px; text-align: center;">
+                                        <div style="display: flex; border-bottom: 2px solid #00ffff; margin-bottom: 5px; justify-content: center;">
+                                            <div style="height: 8px; border-right: 2px solid #00ffff; background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2)); width: 75px;"></div>
+                                            <div style="height: 8px; border-right: 2px solid #00ffff; background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2)); width: 75px;"></div>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #00ffff; width: 150px; margin: 0 auto;">
+                                            <span>0</span>
+                                            <span>500</span>
+                                            <span>1000 km</span>
+                                        </div>
+                                    </div>
+                                    <div style="width: 200px; background: rgba(0, 0, 0, 0.7); border: 2px solid #0066ff; border-radius: 10px; padding: 15px; box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);">
+                                        <div style="font-size: 1rem; color: #00ffff; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(0, 255, 255, 0.3); padding-bottom: 8px;">Ice Thickness Change</div>
+                                        <div style="margin-bottom: 10px;">
+                                            <div style="height: 20px; background: linear-gradient(90deg, #cc0000 0%, #ff4444 25%, #ff8800 50%, #ffaa00 65%, #ffffff 80%, #add8e6 90%, #0066ff 100%); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 3px; margin-bottom: 8px;"></div>
+                                            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #cccccc;">
+                                                <span>-10.0</span>
+                                                <span>-5.0</span>
+                                                <span>0</span>
+                                                <span>+0.5</span>
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: #00ffff; text-align: center; font-style: italic;">meters of ice per year</div>
+                                    </div>
+                                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid #0066ff; border-radius: 8px; padding: 15px; width: 200px;">
+                                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #cccccc;">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.3); background: linear-gradient(45deg, #cc0000, #ff4444);"></div>
+                                                <span>High Loss (-6 to -10 m/year)</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #cccccc;">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.3); background: linear-gradient(45deg, #ff8800, #ffaa00);"></div>
+                                                <span>Medium Loss (-3 to -6 m/year)</span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #cccccc;">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.3); background: linear-gradient(45deg, #ffaa00, #ffffff);"></div>
+                                                <span>Low Loss (-1 to -3 m/year)</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #cccccc;">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.3); background: linear-gradient(45deg, #add8e6, #0066ff);"></div>
+                                                <span>Stable/Gain (0 to +0.5 m/year)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center;">
+                                    <div style="width: 400px; height: 400px; position: relative; border-radius: 10px; overflow: hidden; background: #001122; box-shadow: 0 0 20px rgba(0, 102, 255, 0.3); border: 2px solid #0066ff; display: flex; align-items: center; justify-content: center;">
+                                        <img src="images/antarctica-impact-map.png" alt="Antarctica Ice Thickness Change Map" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                        <div style="width: 100%; height: 100%; display: none; align-items: center; justify-content: center; background: rgba(0, 102, 255, 0.1);">
+                                            <div style="text-align: center; color: #00ffff;">
+                                                <h5 style="font-size: 1.2rem; margin-bottom: 10px;">Antarctica Impact Map</h5>
+                                                <p style="font-size: 0.9rem; margin-bottom: 5px; color: #cccccc;">Replace images/antarctica-impact-map.png</p>
+                                                <p style="font-size: 0.9rem; margin-bottom: 5px; color: #cccccc;">with the actual satellite data image</p>
+                                                <div style="font-size: 3rem; margin-top: 15px; opacity: 0.7;">🗺️</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="flex: 1; text-align: left; font-size: 0.9rem; line-height: 1.4; margin-top: 0; min-width: 400px;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px;">
+                                        <div style="padding: 10px; background: rgba(0, 102, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                                            <h5 style="color: #00ffff; margin-bottom: 8px; font-size: 1rem; border-bottom: 1px solid rgba(0, 255, 255, 0.3); padding-bottom: 4px;">Impact Distribution</h5>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Coastal regions: Highest ice loss (red zones)</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Outlet glaciers: Accelerated thinning</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Interior plateau: Relatively stable (blue)</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Accumulation zones: Slight ice gain</p>
+                                        </div>
+                                        <div style="padding: 10px; background: rgba(0, 102, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                                            <h5 style="color: #00ffff; margin-bottom: 8px; font-size: 1rem; border-bottom: 1px solid rgba(0, 255, 255, 0.3); padding-bottom: 4px;">Analysis Summary</h5>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Affected area: ${massLossPercentage.toFixed(1)}% of total</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Stable regions: ${remainingPercentage.toFixed(1)}% of total</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Time period: annual</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Mass loss rate: ${data.meltingRate.toFixed(2)} kg/s</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Greenland
+                displayArea.innerHTML = `
+                    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+                        <div style="text-align: center; margin-bottom: 25px;">
+                            <h4 style="font-size: 1.5rem; margin-bottom: 10px; color: #00ffff;">Impact Overlay - ${data.iceSheetName}</h4>
+                            <p style="font-size: 0.9rem; color: #cccccc; margin-bottom: 25px; font-style: italic;">Simplified Impact Visualization From Nasa.Gov</p>
+                        </div>
+                        <div style="width: 95%; max-width: 1000px; display: flex; gap: 30px; align-items: flex-start;">
+                            <div style="display: flex; gap: 40px; align-items: flex-start; width: 100%;">
+                                <div style="flex: 0 0 220px; display: flex; flex-direction: column; gap: 20px; align-items: center;">
+                                    <div style="margin-top: 15px; text-align: center;">
+                                        <div style="display: flex; border-bottom: 2px solid #00ffff; margin-bottom: 5px; justify-content: center;">
+                                            <div style="height: 8px; border-right: 2px solid #00ffff; background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2)); width: 75px;"></div>
+                                            <div style="height: 8px; border-right: 2px solid #00ffff; background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2)); width: 75px;"></div>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #00ffff; width: 150px; margin: 0 auto;">
+                                            <span>0</span>
+                                            <span>500</span>
+                                            <span>1000 km</span>
+                                        </div>
+                                    </div>
+                                    <div style="width: 200px; background: rgba(0, 0, 0, 0.7); border: 2px solid #0066ff; border-radius: 10px; padding: 15px; box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);">
+                                        <div style="font-size: 1rem; color: #00ffff; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(0, 255, 255, 0.3); padding-bottom: 8px;">Greenland Ice Loss</div>
+                                        <div style="margin-bottom: 10px;">
+                                            <div style="height: 20px; background: linear-gradient(90deg, #4d0000 0%, #800000 20%, #cc0000 35%, #ff4444 50%, #ff8800 65%, #ffaa00 75%, #ffffff 85%, #add8e6 92%, #0066ff 100%); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 3px; margin-bottom: 8px;"></div>
+                                            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #cccccc;">
+                                                <span>-4</span>
+                                                <span>-3</span>
+                                                <span>-1</span>
+                                                <span>0</span>
+                                                <span>0.5</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid #0066ff; border-radius: 8px; padding: 15px; width: 200px;">
+                                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #cccccc;">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.3); background: linear-gradient(45deg, #cc0000, #ff4444);"></div>
+                                                <span>High Loss (-6 to -10 m/year)</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #cccccc;">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.3); background: linear-gradient(45deg, #ff8800, #ffaa00);"></div>
+                                                <span>Medium Loss (-3 to -6 m/year)</span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #cccccc;">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.3); background: linear-gradient(45deg, #ffaa00, #ffffff);"></div>
+                                                <span>Low Loss (-1 to -3 m/year)</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #cccccc;">
+                                                <div style="width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.3); background: linear-gradient(45deg, #add8e6, #0066ff);"></div>
+                                                <span>Stable/Gain (0 to +0.5 m/year)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center;">
+                                    <div style="width: 400px; height: 400px; position: relative; border-radius: 10px; overflow: hidden; background: #001122; box-shadow: 0 0 20px rgba(0, 102, 255, 0.3); border: 2px solid #0066ff; display: flex; align-items: center; justify-content: center;">
+                                        <img src="images/greenland-impact-map.png" alt="Greenland Ice Thickness Change Map" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                        <div style="width: 100%; height: 100%; display: none; align-items: center; justify-content: center; background: rgba(0, 102, 255, 0.1);">
+                                            <div style="text-align: center; color: #00ffff;">
+                                                <h5 style="font-size: 1.2rem; margin-bottom: 10px;">Greenland Impact Map</h5>
+                                                <p style="font-size: 0.9rem; margin-bottom: 5px; color: #cccccc;">Replace images/greenland-impact-map.png</p>
+                                                <p style="font-size: 0.9rem; margin-bottom: 5px; color: #cccccc;">with the actual satellite data image</p>
+                                                <div style="font-size: 3rem; margin-top: 15px; opacity: 0.7;">🗺️</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="flex: 1; text-align: left; font-size: 0.9rem; line-height: 1.4; margin-top: 0; min-width: 400px;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px;">
+                                        <div style="padding: 10px; background: rgba(0, 102, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                                            <h5 style="color: #00ffff; margin-bottom: 8px; font-size: 1rem; border-bottom: 1px solid rgba(0, 255, 255, 0.3); padding-bottom: 4px;">Impact Distribution</h5>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Coastal regions: Primary ice loss areas</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Interior regions: More stable</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">• Overall impact: ${massLossPercentage.toFixed(1)}% affected</p>
+                                        </div>
+                                        <div style="padding: 10px; background: rgba(0, 102, 255, 0.05); border-radius: 8px; border: 1px solid rgba(0, 102, 255, 0.2);">
+                                            <h5 style="color: #00ffff; margin-bottom: 8px; font-size: 1rem; border-bottom: 1px solid rgba(0, 255, 255, 0.3); padding-bottom: 4px;">Analysis Summary</h5>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Affected area: ${massLossPercentage.toFixed(1)}% of total</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Stable regions: ${remainingPercentage.toFixed(1)}% of total</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Time period: annual</p>
+                                            <p style="margin-bottom: 4px; font-size: 0.85rem; color: #cccccc;">Mass loss rate: ${data.meltingRate.toFixed(2)} kg/s</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            navigateToTitlePage();
+        });
+    </script>
+</body>
+</html>
